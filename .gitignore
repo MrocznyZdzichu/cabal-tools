@@ -1,3 +1,10 @@
+#Repo specific:
+Backups/*
+sandbox.ipynb
+*.dec
+*.scp
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
