@@ -11,4 +11,5 @@ from .FileBackuper          import FileBackuper
 from .SkillsDataLoader      import SkillsDataLoader 
 from .SkillDataParser       import SkillDataParser
 from .SkillInstantCast      import SkillInstantCast
+from .SkillTimeAdjuster     import SkillTimeAdjuster
 from .SkillChanger          import SkillChanger    
