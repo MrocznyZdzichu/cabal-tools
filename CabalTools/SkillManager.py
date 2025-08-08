@@ -2,6 +2,7 @@ from .SkillDataParser   import SkillDataParser
 from .SCPSaver          import SCPSaver
 from .XMLSaver          import XMLSaver
 from .SCPEasyModifier   import SCPEasyModifier
+from .SCPPreview        import SCPPreview
 
 from .SkillInstantCast  import SkillInstantCast
 from .SkillTimeAdjuster import SkillTimeAdjuster
@@ -9,7 +10,7 @@ from .SkillTimeAdjuster import SkillTimeAdjuster
 import copy
 
 
-class SkillChanger:
+class SkillManager:
     def __init__(self, skill_names, skill_details, skill_scp_data, mb_sc_data=None, pvp_scp_data=None):
         self._data_parser       = SkillDataParser()
         self._skill_names       = skill_names
@@ -30,6 +31,10 @@ class SkillChanger:
         if new_skill_mb_data is not None and new_skill_pvp_data is not None:
             self._skill_mb_data = new_skill_mb_data
             self._skill_pvp_data = new_skill_pvp_data
+
+    def skill_preview(self, section_name, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+        # Todo - join skill info with its name if the proper index column is present in a result
+        pass
 
     def instant_cast(self, skill_name, new_value, save_files=True, do_reinit=False):
         skill_id = self._data_parser.get_skill_id(self._skill_names, self._skill_details, skill_name)

@@ -6,14 +6,14 @@ from .SkillsDataLoader import SkillsDataLoader
 from .ShopDataLoader   import ShopDataLoader
 from .ItemDataLoader   import ItemDataLoader
 
-from .SkillChanger     import SkillChanger
+from .SkillManager     import SkillManager
 
 
 class CabalTools:
     def __init__(self, config='config.json'):
         self.load_config(config=config)
         self._init_data_loaders()
-        self._load_skill_changer()
+        self._load_skill_manager()
         self.FileBackuper = FileBackuper()
 
     def load_config(self, config='config.json'):
@@ -47,9 +47,9 @@ class CabalTools:
             messages_path = self._cabal_messages_path
         )
 
-    def _load_skill_changer(self):
+    def _load_skill_manager(self):
         cabal_skill_names, skill_details_dict, skill_scp_data, skill_mb_data, skill_pvp_data = self._skills_dl.load()
-        self.SkillChanger = SkillChanger(
+        self.SkillManager = SkillManager(
             skill_names=cabal_skill_names, 
             skill_details=skill_details_dict, 
             skill_scp_data=skill_scp_data, 
