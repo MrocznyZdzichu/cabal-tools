@@ -1,4 +1,4 @@
-from .CabalTools            import CabalTools as CabalTools
+from .CabalTools            import CabalTools
 
 from .XMLSectionLoader      import XMLSectionLoader
 from .XMLAttributesParser   import XMLAttributesParser
@@ -13,3 +13,7 @@ from .SkillDataParser       import SkillDataParser
 from .SkillInstantCast      import SkillInstantCast
 from .SkillTimeAdjuster     import SkillTimeAdjuster
 from .SkillChanger          import SkillChanger    
+
+from .ShopDataLoader        import ShopDataLoader
+
+from .ItemDataLoader        import ItemDataLoader

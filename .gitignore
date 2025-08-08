@@ -3,7 +3,7 @@ Backups/*
 sandbox.ipynb
 *.dec
 *.scp
-
+old
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

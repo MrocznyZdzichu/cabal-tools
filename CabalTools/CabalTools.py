@@ -2,14 +2,18 @@ import os
 import json
 
 from .FileBackuper     import FileBackuper
+from .SkillsDataLoader import SkillsDataLoader
+from .ShopDataLoader   import ShopDataLoader
+from .ItemDataLoader   import ItemDataLoader
 
 from .SkillChanger     import SkillChanger
-from .SkillsDataLoader import SkillsDataLoader
+
 
 class CabalTools:
     def __init__(self, config='config.json'):
         self.load_config(config=config)
-        self.load_skill_changer()
+        self._init_data_loaders()
+        self._load_skill_changer()
         self.FileBackuper = FileBackuper()
 
     def load_config(self, config='config.json'):
@@ -23,16 +27,28 @@ class CabalTools:
         self._skill_scp_path      = os.path.join(self._scp_dir,  'Skill.scp')
         self._mb_scp_path         = os.path.join(self._scp_dir,  'MissionBattle.scp')
         self._pvp_scp_path        = os.path.join(self._scp_dir,  'PvPBattle.scp')
+        self._npcshop_scp_path    = os.path.join(self._scp_dir,  'NPCShop.scp')
+        self._item_scp_path       = os.path.join(self._scp_dir,  'Item.scp')
 
-    def load_skill_changer(self):
-        sdl = SkillsDataLoader(
+    def _init_data_loaders(self):
+        self._skills_dl = SkillsDataLoader(
             self._skill_dec_path,
             self._cabal_messages_path,
             self._skill_scp_path,
             self._mb_scp_path,
             self._pvp_scp_path
         )
-        cabal_skill_names, skill_details_dict, skill_scp_data, skill_mb_data, skill_pvp_data = sdl.load()
+        self._shops_dl = ShopDataLoader(
+            npcshop_scp_path    = self._npcshop_scp_path, 
+            cabal_messages_path = self._cabal_messages_path
+        )
+        self._items_dl = ItemDataLoader(
+            scp_path      = self._item_scp_path, 
+            messages_path = self._cabal_messages_path
+        )
+
+    def _load_skill_changer(self):
+        cabal_skill_names, skill_details_dict, skill_scp_data, skill_mb_data, skill_pvp_data = self._skills_dl.load()
         self.SkillChanger = SkillChanger(
             skill_names=cabal_skill_names, 
             skill_details=skill_details_dict, 
