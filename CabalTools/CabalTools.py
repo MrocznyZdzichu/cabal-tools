@@ -1,12 +1,12 @@
 import os
 import json
 
-from .FileBackuper     import FileBackuper
-from .SkillsDataLoader import SkillsDataLoader
-from .ShopDataLoader   import ShopDataLoader
-from .ItemDataLoader   import ItemDataLoader
+from .FileHandling.FileBackuper         import FileBackuper
+from .SpecificLoaders.SkillsDataLoader  import SkillsDataLoader
+from .SpecificLoaders.ShopDataLoader    import ShopDataLoader
+from .SpecificLoaders.ItemDataLoader    import ItemDataLoader
 
-from .SkillManager     import SkillManager
+from .SkillsManagement.SkillManager     import SkillManager
 
 
 class CabalTools:

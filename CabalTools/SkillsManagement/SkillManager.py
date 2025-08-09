@@ -1,13 +1,11 @@
-from .SkillDataParser   import SkillDataParser
-from .SCPSaver          import SCPSaver
-from .XMLSaver          import XMLSaver
-from .SCPEasyModifier   import SCPEasyModifier
-from .SCPPreview        import SCPPreview
+from ..FileHandling.SCPSaver        import SCPSaver
+from ..FileHandling.XMLSaver        import XMLSaver
+from ..FileHandling.SCPPreview      import SCPPreview
+from ..FileHandling.SCPxMsgJoiner   import SCPxMsgJoiner
 
-from .SkillInstantCast  import SkillInstantCast
-from .SkillTimeAdjuster import SkillTimeAdjuster
-
-import copy
+from .SkillDataParser               import SkillDataParser
+from .SkillInstantCast              import SkillInstantCast
+from .SkillTimeAdjuster             import SkillTimeAdjuster
 
 
 class SkillManager:
@@ -32,9 +30,27 @@ class SkillManager:
             self._skill_mb_data = new_skill_mb_data
             self._skill_pvp_data = new_skill_pvp_data
 
-    def skill_preview(self, section_name, columns=None, filter_key=None, filter_val=None, filter_operator=None):
-        # Todo - join skill info with its name if the proper index column is present in a result
-        pass
+    def _enrich_skills_scp(self):
+        skill_scp_with_names = SCPxMsgJoiner().join_scp_with_msg(
+            scp           = self._skill_scp_data,
+            msg           = self._skill_names, 
+            scp_key       = 'SkillIdx', 
+            key_build_fun = lambda skill_idx: 'skill' + '0' * (4 - len(str(skill_idx))) + str(skill_idx),
+            msg_key       = 'id', 
+            msg_val       = 'cont'
+        )
+        return skill_scp_with_names
+
+    def skill_preview(self, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+        skill_scp_names = self._enrich_skills_scp()
+        SCPPreview().preview(
+            skill_scp_names, 
+            section_name, 
+            columns, 
+            filter_key, 
+            filter_val,
+            filter_operator
+        )
 
     def instant_cast(self, skill_name, new_value, save_files=True, do_reinit=False):
         skill_id = self._data_parser.get_skill_id(self._skill_names, self._skill_details, skill_name)

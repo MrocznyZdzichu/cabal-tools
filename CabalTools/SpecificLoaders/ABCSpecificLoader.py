@@ -1,9 +1,9 @@
 import re
 from abc import ABC, abstractmethod
 
-from .SCPLoader import SCPLoader
-from .XMLSectionLoader import XMLSectionLoader
-from .XMLAttributesParser import XMLAttributesParser
+from ..FileHandling.SCPLoader           import SCPLoader
+from ..FileHandling.XMLSectionLoader    import XMLSectionLoader
+from ..FileHandling.XMLAttributesParser import XMLAttributesParser
 
 
 class ABCSpecificLoader(ABC):

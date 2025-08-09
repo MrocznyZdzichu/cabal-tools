@@ -1,4 +1,4 @@
-from .SCPEasyModifier import SCPEasyModifier
+from ..FileHandling.SCPEasyModifier import SCPEasyModifier
 import copy
 
 class SkillInstantCast:
