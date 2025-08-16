@@ -18,6 +18,7 @@ class CabalTools:
         self.FileBackuper = FileBackuper()
 
     def load_config(self, config='config.json'):
+        print('Loading configuration ...')
         config = json.load(open('config.json', 'r'))
         self._scp_dir = config["scp-dir"]
         self._enc_dir = config["enc-dir"]
@@ -32,6 +33,7 @@ class CabalTools:
         self._item_scp_path       = os.path.join(self._scp_dir,  'Item.scp')
 
     def _init_data_loaders(self):
+        print('Configuring data loaders ...')
         self._skills_dl = SkillsDataLoader(
             self._skill_dec_path,
             self._cabal_messages_path,
@@ -49,7 +51,9 @@ class CabalTools:
         )
 
     def _load_skill_manager(self):
+        print('Loading skill-related data ...')
         cabal_skill_names, skill_details_dict, skill_scp_data, skill_mb_data, skill_pvp_data = self._skills_dl.load()
+        print('Starting SkillManager module ...')
         self.SkillManager = SkillManager(
             skill_names    = cabal_skill_names, 
             skill_details  = skill_details_dict, 
@@ -59,8 +63,13 @@ class CabalTools:
         )
 
     def _load_npc_manager(self):
+        print('Loading shops-related data ...')
         npcshop_scp_data, npc_rel_msgs = self._shops_dl.load()
-        self.ShopsManager = NPCShopManager(npcshop_scp_data, npc_rel_msgs)
+        print('Loading items-related messages ...')
+        item_rel_msgs = self._items_dl.load()
+
+        print('Starting ShopsManager module ...')
+        self.ShopsManager = NPCShopManager(npcshop_scp_data, npc_rel_msgs, item_rel_msgs)
 
     def backup_skill_files(self, bck_dir='Backups'):
         self.FileBackuper.make_a_backup(self._skill_dec_path, backup_dir=bck_dir)

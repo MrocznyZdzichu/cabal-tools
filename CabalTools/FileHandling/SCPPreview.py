@@ -22,8 +22,11 @@ class SCPPreview:
         return warn_msg
 
     def _set_sections(self, section_name, data):
-        if section_name:
+        if section_name and not isinstance(section_name, list):
             return [section_name]
+        
+        if isinstance(section_name, list) and all(name in [section['section'] for section in data] for name in section_name):
+            return section_name 
         
         if not section_name:
             return [section['section'] for section in data]
