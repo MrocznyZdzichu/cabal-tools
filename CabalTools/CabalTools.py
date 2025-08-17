@@ -72,7 +72,10 @@ class CabalTools:
         self.ShopsManager = NPCShopManager(npcshop_scp_data, npc_rel_msgs, item_rel_msgs)
 
     def backup_skill_files(self, bck_dir='Backups'):
-        self.FileBackuper.make_a_backup(self._skill_dec_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._skill_scp_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._mb_scp_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._pvp_scp_path, backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._skill_dec_path,   backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._skill_scp_path,   backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._mb_scp_path,      backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._pvp_scp_path,     backup_dir=bck_dir)
+
+    def backup_npc_shops_files(self, bck_dir='Backups'):
+        self.FileBackuper.make_a_backup(self._npcshop_scp_path, backup_dir=bck_dir)

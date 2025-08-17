@@ -47,6 +47,8 @@ class SCPPreview:
             df = df[df[filter_key].astype(str).str.match(str(filter_val), na=False)]
 
         if columns is not None:
+            if isinstance(columns, str):
+                columns = [columns]
             df = df[columns]
 
         return df
