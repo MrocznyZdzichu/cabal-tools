@@ -12,12 +12,12 @@ class SCPSaver:
                 if not entries:
                     continue
 
-                headers = list(entries[0].keys())[1:]
+                headers = [k for k in entries[0].keys() if k != "RowIndex"]
 
                 f.write(f"[{section_name}]\t" + '\t'.join(headers) + '\n')
 
-                for idx, entry in enumerate(entries):
-                    row = [str(idx)]
+                for entry in entries:
+                    row = [str(entry["RowIndex"])]
                     for key in headers:
                         val = entry.get(key, '')
                         if val is None:

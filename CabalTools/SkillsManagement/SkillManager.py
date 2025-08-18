@@ -1,20 +1,20 @@
-from .SkillDataParser   import SkillDataParser
-from .SCPSaver          import SCPSaver
-from .XMLSaver          import XMLSaver
-from .SCPEasyModifier   import SCPEasyModifier
+from ..FileHandling.SCPSaver        import SCPSaver
+from ..FileHandling.XMLSaver        import XMLSaver
+from ..FileHandling.SCPPreview      import SCPPreview
+from ..FileHandling.SCPxMsgJoiner   import SCPxMsgJoiner
 
-from .SkillInstantCast  import SkillInstantCast
-from .SkillTimeAdjuster import SkillTimeAdjuster
+from .SkillDataParser               import SkillDataParser
+from .SkillInstantCast              import SkillInstantCast
+from .SkillTimeAdjuster             import SkillTimeAdjuster
 
-import copy
 
-
-class SkillChanger:
+class SkillManager:
     def __init__(self, skill_names, skill_details, skill_scp_data, mb_sc_data=None, pvp_scp_data=None):
         self._data_parser       = SkillDataParser()
         self._skill_names       = skill_names
         self._skill_details     = skill_details
         self._skill_scp_data    = skill_scp_data
+        self._skill_rich_data   = self._enrich_skills_scp()
 
         self._instant_cast      = SkillInstantCast()
         self._time_adjuster     = SkillTimeAdjuster()
@@ -24,12 +24,35 @@ class SkillChanger:
             self._skill_pvp_data = pvp_scp_data
 
     def reinit(self, new_skill_details, new_skill_scp_data, new_skill_mb_data=None, new_skill_pvp_data=None):
-        self._skill_details = new_skill_details
-        self._skill_scp_data = new_skill_scp_data
+        self._skill_details   = new_skill_details
+        self._skill_scp_data  = new_skill_scp_data
+        self._skill_rich_data = self._enrich_skills_scp()
 
         if new_skill_mb_data is not None and new_skill_pvp_data is not None:
             self._skill_mb_data = new_skill_mb_data
             self._skill_pvp_data = new_skill_pvp_data
+
+    def _enrich_skills_scp(self):
+        skill_scp_with_names = SCPxMsgJoiner().join_scp_with_msg(
+            scp           = self._skill_scp_data,
+            msg           = self._skill_names, 
+            scp_key       = 'SkillIdx', 
+            key_build_fun = lambda skill_idx: 'skill' + '0' * (4 - len(str(skill_idx))) + str(skill_idx),
+            msg_key       = 'id', 
+            msg_val       = 'cont',
+            new_idx_name  = 'SkillName'
+        )
+        return skill_scp_with_names
+
+    def skill_preview(self, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+        SCPPreview().preview(
+            self._skill_rich_data, 
+            section_name, 
+            columns, 
+            filter_key, 
+            filter_val,
+            filter_operator
+        )
 
     def instant_cast(self, skill_name, new_value, save_files=True, do_reinit=False):
         skill_id = self._data_parser.get_skill_id(self._skill_names, self._skill_details, skill_name)
