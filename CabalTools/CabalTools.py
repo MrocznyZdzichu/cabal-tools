@@ -19,7 +19,7 @@ class CabalTools:
 
     def load_config(self, config='config.json'):
         print('Loading configuration ...')
-        config = json.load(open('config.json', 'r'))
+        config = json.load(open(config, 'r'))
         self._scp_dir = config["scp-dir"]
         self._enc_dir = config["enc-dir"]
         self._lang_dir = config["lang-dir"]

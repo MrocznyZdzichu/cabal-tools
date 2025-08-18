@@ -57,20 +57,6 @@ class ItemRemover:
             TabID, 
             SlotID
         )
-        # new_entries = [
-        #     e for e in shop_section['entries']
-        #     if not (e['Pool_ID'] == Pool_ID and e['TabID'] == TabID and e['SlotID'] == SlotID)
-        # ]
-
-        # if new_entries:
-        #     start_index = min(e['RowIndex'] for e in new_entries)
-        # else:
-        #     start_index = 0
-
-        # for i, entry in enumerate(new_entries, start=start_index):
-        #     entry['RowIndex'] = i
-
-        # shop_section['entries'] = new_entries
 
         return data_copy
     
