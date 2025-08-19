@@ -5,7 +5,7 @@ class SCPEasyModifier:
     def __init__(self):
         pass
 
-    def modify_scp(self, scp_data, section_name, item_key_field, item_key_value, field_name, new_value):
+    def modify_scp_row(self, scp_data, section_name, item_key_field, item_key_value, field_name, new_value):
         updated_dict = copy.deepcopy(scp_data)
         for section in updated_dict:
             if section['section'] == section_name:

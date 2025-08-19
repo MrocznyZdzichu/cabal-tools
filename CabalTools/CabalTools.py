@@ -5,9 +5,12 @@ from .FileHandling.FileBackuper         import FileBackuper
 from .SpecificLoaders.SkillsDataLoader  import SkillsDataLoader
 from .SpecificLoaders.ShopDataLoader    import ShopDataLoader
 from .SpecificLoaders.ItemDataLoader    import ItemDataLoader
+from .SpecificLoaders.WarpDataLoader    import WarpDataLoader
 
 from .SkillsManagement.SkillManager     import SkillManager
 from .NPCShopManagement.NPCShopManager  import NPCShopManager
+from .WarpsManagement.WarpManager       import WarpManager
+
 
 class CabalTools:
     def __init__(self, config='config.json'):
@@ -15,6 +18,7 @@ class CabalTools:
         self._init_data_loaders()
         self._load_skill_manager()
         self._load_npc_manager()
+        self._load_warp_manager()
         self.FileBackuper = FileBackuper()
 
     def load_config(self, config='config.json'):
@@ -25,12 +29,17 @@ class CabalTools:
         self._lang_dir = config["lang-dir"]
 
         self._cabal_messages_path = os.path.join(self._lang_dir, 'cabal_msg.dec')
+
         self._skill_dec_path      = os.path.join(self._enc_dir,  'skill.dec')
         self._skill_scp_path      = os.path.join(self._scp_dir,  'Skill.scp')
         self._mb_scp_path         = os.path.join(self._scp_dir,  'MissionBattle.scp')
         self._pvp_scp_path        = os.path.join(self._scp_dir,  'PvPBattle.scp')
+
         self._npcshop_scp_path    = os.path.join(self._scp_dir,  'NPCShop.scp')
         self._item_scp_path       = os.path.join(self._scp_dir,  'Item.scp')
+
+        self._warp_scp_path       = os.path.join(self._scp_dir,  'Warp.scp')
+        self._warp_dec_path       = os.path.join(self._enc_dir,  'cabal.dec')
 
     def _init_data_loaders(self):
         print('Configuring data loaders ...')
@@ -48,6 +57,10 @@ class CabalTools:
         self._items_dl = ItemDataLoader(
             scp_path      = self._item_scp_path, 
             messages_path = self._cabal_messages_path
+        )
+        self._warp_points_dl = WarpDataLoader(
+            dec_path = self._warp_dec_path,
+            scp_path = self._warp_scp_path
         )
 
     def _load_skill_manager(self):
@@ -71,6 +84,13 @@ class CabalTools:
         print('Starting ShopsManager module ...')
         self.ShopsManager = NPCShopManager(npcshop_scp_data, npc_rel_msgs, item_rel_msgs)
 
+    def _load_warp_manager(self):
+        print('Load Warp Points data ...')
+        warp_dec_data, warp_scp_data = self._warp_points_dl.load()
+
+        print('Starting WarpMangager module ...')
+        self.WarpManager = WarpManager(warp_dec_data, warp_scp_data)
+
     def backup_skill_files(self, bck_dir='Backups'):
         self.FileBackuper.make_a_backup(self._skill_dec_path,   backup_dir=bck_dir)
         self.FileBackuper.make_a_backup(self._skill_scp_path,   backup_dir=bck_dir)
@@ -79,3 +99,7 @@ class CabalTools:
 
     def backup_npc_shops_files(self, bck_dir='Backups'):
         self.FileBackuper.make_a_backup(self._npcshop_scp_path, backup_dir=bck_dir)
+
+    def backup_warp_files(self, bck_dir='Backups'):
+        self.FileBackuper.make_a_backup(self._warp_dec_path, backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._warp_scp_path, backup_dir=bck_dir)

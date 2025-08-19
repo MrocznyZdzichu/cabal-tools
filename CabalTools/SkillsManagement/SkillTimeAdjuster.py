@@ -7,7 +7,7 @@ class SkillTimeAdjuster:
         self._scp_processor = SCPEasyModifier()
 
     def _set_AdjustTime_scp(self, skill_scp_data, skill_id, new_value):
-        return self._scp_processor.modify_scp(
+        return self._scp_processor.modify_scp_row(
             scp_data       = skill_scp_data,
             section_name   = 'SKill_Main',
             item_key_field = 'SkillIdx', 

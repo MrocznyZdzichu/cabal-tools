@@ -6,9 +6,9 @@ class SkillInstantCast:
         self._scp_processor = SCPEasyModifier()
 
     def _instant_cast_scps(self, skill_scp, mb_scp, pvp_scp, skill_id, new_value):
-        new_scp = self._scp_processor.modify_scp(skill_scp, 'SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
-        new_mb  = self._scp_processor.modify_scp(mb_scp, 'MB_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
-        new_pvp = self._scp_processor.modify_scp(pvp_scp, 'PvP_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
+        new_scp = self._scp_processor.modify_scp_row(skill_scp, 'SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
+        new_mb  = self._scp_processor.modify_scp_row(mb_scp, 'MB_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
+        new_pvp = self._scp_processor.modify_scp_row(pvp_scp, 'PvP_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
 
         return new_scp, new_mb, new_pvp
 
