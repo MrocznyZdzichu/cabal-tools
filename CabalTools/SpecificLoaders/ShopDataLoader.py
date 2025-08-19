@@ -3,10 +3,10 @@ from .ABCSpecificLoader   import ABCSpecificLoader
 class ShopDataLoader(ABCSpecificLoader):
     def __init__(self, npcshop_scp_path, cabal_messages_path):
         super().__init__(
-            npcshop_scp_path,
-            cabal_messages_path,
-            '<cabal_msg>',
-            '</cabal_msg>'
+            scp_path=npcshop_scp_path, 
+            messages_path=cabal_messages_path, 
+            msg_section_start='<cabal_msg>', 
+            msg_section_end='</cabal_msg>'
         )
 
     def load(self):
