@@ -7,19 +7,31 @@ class SCPPreview:
         self.max_width = max_width
 
     def _valid_filter(self, df, filter_key=None, filter_val=None, filter_operator=None):
-        warn_msg = None
+        if filter_key is None or filter_val is None or filter_operator is None:
+            return 'WARN: Incomplete filter parameters.'
 
-        passed_filter_params = [filter_key, filter_val, filter_operator]
-        if any(v is not None for v in passed_filter_params) and not all(v is not None for v in passed_filter_params):
-            warn_msg = 'WARN: Not all required filtering parameters has been passed.'
+        if filter_operator not in ('==', '>', '>=', '<=', '<', '!=', 'like', 'regex'):
+            return f'WARN: Unsupported operator "{filter_operator}".'
 
-        if filter_operator not in ('==', '>', '>=', '<=', '<', '!=', 'like', 'regex') and all(v is not None for v in passed_filter_params):
-            warn_msg = 'WARN: Passed filtering operator not supported.'
+        if filter_key not in df.columns:
+            return f'WARN: Column "{filter_key}" not found in dataframe.'
+
+        return None
+
+    # def _valid_filter(self, df, filter_key=None, filter_val=None, filter_operator=None):
+    #     warn_msg = None
+
+    #     passed_filter_params = [filter_key, filter_val, filter_operator]
+    #     if any(v is not None for v in passed_filter_params) and not all(v is not None for v in passed_filter_params):
+    #         warn_msg = 'WARN: Not all required filtering parameters has been passed.'
+
+    #     if filter_operator not in ('==', '>', '>=', '<=', '<', '!=', 'like', 'regex') and all(v is not None for v in passed_filter_params):
+    #         warn_msg = 'WARN: Passed filtering operator not supported.'
         
-        if all(x is not None for x in passed_filter_params) and filter_key not in df.columns:
-            warn_msg = 'WARN: Passed key-column name is not in the data columns.'
+    #     if all(x is not None for x in passed_filter_params) and filter_key not in df.columns:
+    #         warn_msg = 'WARN: Passed key-column name is not in the data columns.'
 
-        return warn_msg
+    #     return warn_msg
 
     def _set_sections(self, section_name, data):
         if section_name and not isinstance(section_name, list):
@@ -32,19 +44,26 @@ class SCPPreview:
             return [section['section'] for section in data]
 
     def _filtering(self, df, columns=None, filter_key=None, filter_val=None, filter_operator=None):
-        warn = self._valid_filter(df, filter_key, filter_val, filter_operator)
-        if warn:
-            print(warn, 'Filtering will be omitted.')
-            return df
+        if not isinstance(filter_key, (list, tuple)) and filter_key is not None:
+            filter_key = [filter_key]
+            filter_val = [filter_val]
+            filter_operator = [filter_operator]
 
-        if filter_operator in ('==', '>', '>=', '<=', '<', '!+'):
-            df = df.query(f"`{filter_key}` {filter_operator} @filter_val")
-            
-        elif filter_operator == 'like':
-            df = df[df[filter_key].astype(str).str.contains(str(filter_val), case=False, na=False)]
+        if filter_key is None:
+            filter_key, filter_val, filter_operator = [], [], []
 
-        elif filter_operator == 'regex':
-            df = df[df[filter_key].astype(str).str.match(str(filter_val), na=False)]
+        for k, v, op in zip(filter_key, filter_val, filter_operator):
+            warn = self._valid_filter(df, k, v, op)
+            if warn:
+                print(warn, 'Filtering will be omitted for this condition.')
+                continue
+
+            if op in ('==', '>', '>=', '<=', '<', '!='):
+                df = df.query(f"`{k}` {op} @v")
+            elif op == 'like':
+                df = df[df[k].astype(str).str.contains(str(v), case=False, na=False)]
+            elif op == 'regex':
+                df = df[df[k].astype(str).str.match(str(v), na=False)]
 
         if columns is not None:
             if isinstance(columns, str):
@@ -52,6 +71,28 @@ class SCPPreview:
             df = df[columns]
 
         return df
+
+    # def _filtering(self, df, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+    #     warn = self._valid_filter(df, filter_key, filter_val, filter_operator)
+    #     if warn:
+    #         print(warn, 'Filtering will be omitted.')
+    #         return df
+
+    #     if filter_operator in ('==', '>', '>=', '<=', '<', '!+'):
+    #         df = df.query(f"`{filter_key}` {filter_operator} @filter_val")
+            
+    #     elif filter_operator == 'like':
+    #         df = df[df[filter_key].astype(str).str.contains(str(filter_val), case=False, na=False)]
+
+    #     elif filter_operator == 'regex':
+    #         df = df[df[filter_key].astype(str).str.match(str(filter_val), na=False)]
+
+    #     if columns is not None:
+    #         if isinstance(columns, str):
+    #             columns = [columns]
+    #         df = df[columns]
+
+    #     return df
     
     def _stylish_df(self, df):
         return df.style.set_table_styles(

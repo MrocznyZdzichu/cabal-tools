@@ -46,9 +46,14 @@ class ItemDataLoader(ABCSpecificLoader):
 
         return expanded
 
+    def _prepare_item_msg_map(self, loaded_item_messages):
+        return {x['ItemKind']: x for x in loaded_item_messages}
+
     def load(self):
         cabal_messages = self._load_msgs()
         item_rel_msgs = self._pick_msgs_section(cabal_messages, r'item\d+')
         item_rel_msgs = self._add_itemKind(item_rel_msgs)
         item_rel_msgs = self._expand_item_ids(item_rel_msgs)
-        return item_rel_msgs
+        item_msg_dict = self._prepare_item_msg_map(item_rel_msgs)
+        
+        return item_rel_msgs, item_msg_dict

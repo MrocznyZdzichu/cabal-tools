@@ -8,11 +8,12 @@ from .ItemRemover                   import ItemRemover
 
 
 class NPCShopManager:
-    def __init__(self, npc_shops_scp_data, npc_related_messages, items_related_messages):
+    def __init__(self, npc_shops_scp_data, npc_related_messages, items_related_messages, items_msg_map):
         self._npc_scp         = npc_shops_scp_data
         self._npc_msg         = npc_related_messages
         self._item_msgs       = items_related_messages
-        self._msg_map         = {x['ItemKind']: x['cont'] for x in items_related_messages}
+        self._msg_map         = items_msg_map
+        # self._msg_map         = {x['ItemKind']: x['cont'] for x in items_related_messages}
 
         self._enriched_data1  = self._enrich_npc_section()
         self._npc_pool_map    = self._build_npc_pool_map()

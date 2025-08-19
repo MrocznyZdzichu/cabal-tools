@@ -3,19 +3,31 @@ import json
 from typing                                    import Optional
 
 from .FileHandling.FileBackuper                import FileBackuper
-from .SpecificLoaders.SkillsDataLoader         import SkillsDataLoader
-from .SpecificLoaders.ShopDataLoader           import ShopDataLoader
-from .SpecificLoaders.ItemDataLoader           import ItemDataLoader
-from .SpecificLoaders.WarpDataLoader           import WarpDataLoader
-from .SpecificLoaders.ConstSCPLoader           import ConstSCPLoader
-from .SpecificLoaders.MultipleSCPLoader        import MultipleSCPLoader
 
-from .SkillsManagement.SkillManager            import SkillManager
-from .NPCShopManagement.NPCShopManager         import NPCShopManager
-from .WarpsManagement.WarpManager              import WarpManager
-from .ConstManagement.ConstManager             import ConstManager
-from .MultipleSCPManagement.MultipleSCPManager import MultipleSCPManager
+from .SpecificLoaders import *
+from .SkillsManagement import *
+from .NPCShopManagement import *
+from .WarpsManagement import *
+from .ConstManagement import *
+from .MultipleSCPManagement import *
+from .DropListManagement import *
 
+# from .SpecificLoaders.SkillsDataLoader         import SkillsDataLoader
+# from .SpecificLoaders.ShopDataLoader           import ShopDataLoader
+# from .SpecificLoaders.ItemDataLoader           import ItemDataLoader
+# from .SpecificLoaders.WarpDataLoader           import WarpDataLoader
+# from .SpecificLoaders.ConstSCPLoader           import ConstSCPLoader
+# from .SpecificLoaders.MultipleSCPLoader        import MultipleSCPLoader
+# from .SpecificLoaders.DropListLoader           import DropListLoader
+# from .SpecificLoaders.MobsLoader               import MobsLoader
+# from .SpecificLoaders.WorldMsgLoader           import WorldMsgLoader
+
+# from .SkillsManagement.SkillManager            import SkillManager
+# from .NPCShopManagement.NPCShopManager         import NPCShopManager
+# from .WarpsManagement.WarpManager              import WarpManager
+# from .ConstManagement.ConstManager             import ConstManager
+# from .MultipleSCPManagement.MultipleSCPManager import MultipleSCPManager
+# from .DropListManagement.DropListManager       import DropListManager
 
 class CabalTools:
     # Tips for VSC tooltips
@@ -24,6 +36,7 @@ class CabalTools:
     WarpManager:     Optional[WarpManager]        = None
     ConstManager:    Optional[ConstManager]       = None
     MultipleManager: Optional[MultipleSCPManager] = None
+    DropListManager: Optional[DropListManager]    = None
 
     def __init__(self, config='config.json'):
         # Tips for VSC tooltips
@@ -32,6 +45,7 @@ class CabalTools:
         self.WarpManager:     WarpManager
         self.ConstManager:    ConstManager
         self.MultipleManager: MultipleSCPManager
+        self.DropListManager: DropListManager
 
         self.load_config(config=config)
         self.FileBackuper = FileBackuper()
@@ -58,6 +72,10 @@ class CabalTools:
         
         self._const_scp_path      = os.path.join(self._scp_dir,  'Const.scp')
         self._multiple_scp_path   = os.path.join(self._scp_dir,  'Multiple.scp')
+
+        self._drop_list_scp_path  = os.path.join(self._scp_dir,  'World_drop.scp')
+        self._mobs_msg_path       = os.path.join(self._lang_dir, 'cabal_msg.dec')
+        self._world_msg_path      = os.path.join(self._lang_dir, 'cabal_msg.dec')
 
         self._loader_configs  = self._prepare_loaders_config()
         self._manager_configs = self._prepare_managers_config()
@@ -116,6 +134,25 @@ class CabalTools:
                     "scp_path" : self._multiple_scp_path
                 }
             },
+            "droplists" : {
+                "class": DropListLoader,
+                "args" : [],
+                "kwargs" : {
+                    "scp_path" : self._drop_list_scp_path
+                }
+            },
+            "mobs" : {
+                "class": MobsLoader,
+                "args" : [],
+                "kwargs" : {
+                    "messages_path" : self._mobs_msg_path
+                }
+            },
+            "worlds_msg" : {
+                "class": WorldMsgLoader,
+                "args" : [self._world_msg_path],
+                "kwargs" : {}
+            },
         }
     
     def _prepare_managers_config(self):
@@ -124,21 +161,20 @@ class CabalTools:
                 "name": "SkillManager",
                 "class": SkillManager,
                 "loader": "_skills_dl",
-                "unpack": True,
                 "attr": "SkillManager"
             },
             {
-                "name": "ShopsManager",
+                "name": "NPCShopManager",
+                "attr": "ShopsManager",
                 "class": NPCShopManager,
-                "loader": "_shops_dl",
-                "extra_loaders": ["_items_dl"],
-                "attr": "ShopsManager"
+                "loader": "_shops_dl",       
+                "extra_loaders": ["_items_dl"], 
+                "unpack": False                        
             },
             {
                 "name": "WarpManager",
                 "class": WarpManager,
                 "loader": "_warp_points_dl",
-                "unpack": True,
                 "attr": "WarpManager"
             },
             {
@@ -153,34 +189,53 @@ class CabalTools:
                 "loader": "_multiple_scp_dl",
                 "attr": "MultipleManager"
             },
+            {
+                "name": "DropListManager",
+                "class": DropListManager,
+                "loader": "_droplists_dl",
+                "extra_loaders": ["_mobs_dl", "_worlds_msg_dl", "_items_dl"],
+                "attr": "DropListManager"
+            },
         ]
     
     def _init_data_loaders(self):
         print('Configuring data loaders ...')
         for name, cfg in self._loader_configs.items():
-            print(f"Initializing {name} data loader ...", end='', flush=True)
+            print(f"\tInitializing {name} data loader ...", end='', flush=True)
             loader_cls = cfg["class"]
             loader_obj = loader_cls(*cfg["args"], **cfg["kwargs"])
             setattr(self, f"_{name}_dl", loader_obj)
             print(" Done!")
 
+    def _get_or_load(self, loader_name, loader_obj):
+        if loader_name not in self._loaded_cache:
+            self._loaded_cache[loader_name] = loader_obj.load()
+        return self._loaded_cache[loader_name]
+    
     def _init_managers(self):
         print("Configuring managers ...")
+        self._loaded_cache = {}
+
         for cfg in self._manager_configs:
-            print(f"Initializing {cfg['name']} ...", end='', flush=True)
-            loader = getattr(self, cfg["loader"])
-            loaded_data = loader.load()
+            print(f"\tInitializing {cfg['name']} ...", end='', flush=True)
 
-            if cfg.get("unpack", False):
-                manager_obj = cfg["class"](*loaded_data)
-            elif "extra_loaders" in cfg:
-                shop_data, shop_msgs = loaded_data
-                item_msgs = getattr(self, cfg["extra_loaders"][0]).load()
-                manager_obj = cfg["class"](shop_data, shop_msgs, item_msgs)
-            else:
-                manager_obj = cfg["class"](loaded_data)
+            loader_obj = getattr(self, cfg["loader"])
+            loaded_data = self._get_or_load(cfg["loader"], loader_obj)
 
-            setattr(self, cfg["attr"], manager_obj)
+            if not isinstance(loaded_data, tuple):
+                loaded_data = (loaded_data,)
+
+            extra_data = []
+            for extra_loader_name in cfg.get("extra_loaders", []):
+                extra_loader_obj = getattr(self, extra_loader_name)
+                extra_loaded = self._get_or_load(extra_loader_name, extra_loader_obj)
+
+                if not isinstance(extra_loaded, tuple):
+                    extra_loaded = (extra_loaded,)
+                extra_data.extend(extra_loaded)
+
+            manager_obj = cfg["class"](*loaded_data, *extra_data)
+            setattr(self, cfg["name"], manager_obj)
             print(" Done!")
 
     def backup_skill_files(self, bck_dir='Backups'):
