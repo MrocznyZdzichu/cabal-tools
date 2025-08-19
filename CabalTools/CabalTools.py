@@ -1,30 +1,72 @@
 import os
 import json
-from typing                             import Optional, cast, get_type_hints
+from typing                                    import Optional
 
-from .FileHandling.FileBackuper         import FileBackuper
-from .SpecificLoaders.SkillsDataLoader  import SkillsDataLoader
-from .SpecificLoaders.ShopDataLoader    import ShopDataLoader
-from .SpecificLoaders.ItemDataLoader    import ItemDataLoader
-from .SpecificLoaders.WarpDataLoader    import WarpDataLoader
-from .SpecificLoaders.ConstSCPLoader    import ConstSCPLoader
+from .FileHandling.FileBackuper                import FileBackuper
+from .SpecificLoaders.SkillsDataLoader         import SkillsDataLoader
+from .SpecificLoaders.ShopDataLoader           import ShopDataLoader
+from .SpecificLoaders.ItemDataLoader           import ItemDataLoader
+from .SpecificLoaders.WarpDataLoader           import WarpDataLoader
+from .SpecificLoaders.ConstSCPLoader           import ConstSCPLoader
+from .SpecificLoaders.MultipleSCPLoader        import MultipleSCPLoader
 
-from .SkillsManagement.SkillManager     import SkillManager
-from .NPCShopManagement.NPCShopManager  import NPCShopManager
-from .WarpsManagement.WarpManager       import WarpManager
-from .ConstManagement.ConstManager      import ConstManager
+from .SkillsManagement.SkillManager            import SkillManager
+from .NPCShopManagement.NPCShopManager         import NPCShopManager
+from .WarpsManagement.WarpManager              import WarpManager
+from .ConstManagement.ConstManager             import ConstManager
+from .MultipleSCPManagement.MultipleSCPManager import MultipleSCPManager
 
 
 class CabalTools:
     # Tips for VSC tooltips
-    SkillManager: Optional[SkillManager] = None
-    ShopsManager: Optional[NPCShopManager] = None
-    WarpManager: Optional[WarpManager] = None
-    ConstManager: Optional[ConstManager] = None
+    SkillManager:    Optional[SkillManager]       = None
+    ShopsManager:    Optional[NPCShopManager]     = None
+    WarpManager:     Optional[WarpManager]        = None
+    ConstManager:    Optional[ConstManager]       = None
+    MultipleManager: Optional[MultipleSCPManager] = None
 
     def __init__(self, config='config.json'):
+        # Tips for VSC tooltips
+        self.SkillManager:    SkillManager
+        self.ShopsManager:    NPCShopManager
+        self.WarpManager:     WarpManager
+        self.ConstManager:    ConstManager
+        self.MultipleManager: MultipleSCPManager
+
         self.load_config(config=config)
-        self._loader_configs = {
+        self.FileBackuper = FileBackuper()
+
+    def load_config(self, config='config.json'):
+        print('Loading configuration ...')
+        config = json.load(open(config, 'r'))
+        self._scp_dir = config["scp-dir"]
+        self._enc_dir = config["enc-dir"]
+        self._lang_dir = config["lang-dir"]
+
+        self._cabal_messages_path = os.path.join(self._lang_dir, 'cabal_msg.dec')
+
+        self._skill_dec_path      = os.path.join(self._enc_dir,  'skill.dec')
+        self._skill_scp_path      = os.path.join(self._scp_dir,  'Skill.scp')
+        self._mb_scp_path         = os.path.join(self._scp_dir,  'MissionBattle.scp')
+        self._pvp_scp_path        = os.path.join(self._scp_dir,  'PvPBattle.scp')
+
+        self._npcshop_scp_path    = os.path.join(self._scp_dir,  'NPCShop.scp')
+        self._item_scp_path       = os.path.join(self._scp_dir,  'Item.scp')
+
+        self._warp_scp_path       = os.path.join(self._scp_dir,  'Warp.scp')
+        self._warp_dec_path       = os.path.join(self._enc_dir,  'cabal.dec')
+        
+        self._const_scp_path      = os.path.join(self._scp_dir,  'Const.scp')
+        self._multiple_scp_path   = os.path.join(self._scp_dir,  'Multiple.scp')
+
+        self._loader_configs  = self._prepare_loaders_config()
+        self._manager_configs = self._prepare_managers_config()
+
+        self._init_data_loaders()
+        self._init_managers()
+
+    def _prepare_loaders_config(self):
+        return {
             "skills": {
                 "class": SkillsDataLoader,
                 "args": [
@@ -67,8 +109,17 @@ class CabalTools:
                     "scp_path": self._const_scp_path
                 }
             },
+            "multiple_scp" : {
+                "class": MultipleSCPLoader,
+                "args" : [],
+                "kwargs" : {
+                    "scp_path" : self._multiple_scp_path
+                }
+            },
         }
-        self._manager_configs = [
+    
+    def _prepare_managers_config(self):
+        return [
             {
                 "name": "SkillManager",
                 "class": SkillManager,
@@ -96,40 +147,14 @@ class CabalTools:
                 "loader": "_const_scp_dl",
                 "attr": "ConstManager"
             },
+            {
+                "name": "MultipleManager",
+                "class": MultipleSCPManager,
+                "loader": "_multiple_scp_dl",
+                "attr": "MultipleManager"
+            },
         ]
-        
-        # Tips for VSC tooltips
-        self.SkillManager: SkillManager
-        self.ShopsManager: NPCShopManager
-        self.WarpManager: WarpManager
-        self.ConstManager: ConstManager
-
-        self._init_data_loaders()
-        self._init_managers()
-        self.FileBackuper = FileBackuper()
-
-    def load_config(self, config='config.json'):
-        print('Loading configuration ...')
-        config = json.load(open(config, 'r'))
-        self._scp_dir = config["scp-dir"]
-        self._enc_dir = config["enc-dir"]
-        self._lang_dir = config["lang-dir"]
-
-        self._cabal_messages_path = os.path.join(self._lang_dir, 'cabal_msg.dec')
-
-        self._skill_dec_path      = os.path.join(self._enc_dir,  'skill.dec')
-        self._skill_scp_path      = os.path.join(self._scp_dir,  'Skill.scp')
-        self._mb_scp_path         = os.path.join(self._scp_dir,  'MissionBattle.scp')
-        self._pvp_scp_path        = os.path.join(self._scp_dir,  'PvPBattle.scp')
-
-        self._npcshop_scp_path    = os.path.join(self._scp_dir,  'NPCShop.scp')
-        self._item_scp_path       = os.path.join(self._scp_dir,  'Item.scp')
-
-        self._warp_scp_path       = os.path.join(self._scp_dir,  'Warp.scp')
-        self._warp_dec_path       = os.path.join(self._enc_dir,  'cabal.dec')
-        
-        self._const_scp_path      = os.path.join(self._scp_dir,  'Const.scp')
-
+    
     def _init_data_loaders(self):
         print('Configuring data loaders ...')
         for name, cfg in self._loader_configs.items():
@@ -173,3 +198,6 @@ class CabalTools:
 
     def backup_const_files(self, bck_dir='Backups'):
         self.FileBackuper.make_a_backup(self._const_scp_path, backup_dir=bck_dir)
+
+    def backup_multiple_scp_file(self, bck_dir='Backups'):
+        self.FileBackuper.make_a_backup(self._multiple_scp_path, backup_dir=bck_dir)

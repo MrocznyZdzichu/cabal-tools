@@ -1,6 +1,7 @@
 from .MultiDropModifier import MultiDropModifier
 from ..FileHandling     import SCPSaver
 
+
 class ConstManager:
     def __init__(self, scp_data):
         self._scp_data   = scp_data
