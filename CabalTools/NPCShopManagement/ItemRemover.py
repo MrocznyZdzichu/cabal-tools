@@ -1,5 +1,8 @@
 import copy
 
+from ..FileHandling.SCPData import SCPData
+
+
 class ItemRemover:
     def __init__(self):
         pass
@@ -19,8 +22,9 @@ class ItemRemover:
         else:
             raise ValueError('ERROR: Unable to find a Pool_ID based on provided name.')
         
-    def _is_item_in_shop(self, scp_data, Pool_ID, TabID, SlotID):
-        shop_entries = [x['entries'] for x in scp_data if x['section'] == 'Shop'][0]
+    def _is_item_in_shop(self, scp_data: SCPData, Pool_ID, TabID, SlotID):
+        shop_entries = scp_data.get_section('Shop')
+
         for shop_item in shop_entries:
             if shop_item['Pool_ID'] == Pool_ID and shop_item['TabID'] == TabID and shop_item['SlotID'] == SlotID:
                 return True
@@ -39,26 +43,17 @@ class ItemRemover:
             entry['RowIndex'] = i
         return new_entries
     
-    def remove_item_from_shop(self, scp_data, pool_npc_map, pool_id_or_name, TabID, SlotID):
+    def remove_item_from_shop(self, scp_data: SCPData, pool_npc_map, pool_id_or_name, TabID, SlotID):
         Pool_ID = self._set_proper_pool_id(pool_npc_map, pool_id_or_name)
         if not self._is_item_in_shop(scp_data, Pool_ID, TabID, SlotID):
             print('WARN: There is no such item in the NPC shop. Skipping ...')
-            return data_copy
-        
-        data_copy = copy.deepcopy(scp_data)
+            return 
 
-        shop_section = next((s for s in data_copy if s['section'] == 'Shop'), None)
-        if not shop_section:
-            raise ValueError("ERROR: No 'Shop' section found in data.")
+        shop_section = scp_data.get_section('Shop')
         
-        shop_section['entries'] = self._filter_shop_entries(
-            shop_section['entries'], 
+        shop_section[:] = self._filter_shop_entries(
+            shop_section, 
             Pool_ID, 
             TabID, 
             SlotID
         )
-
-        return data_copy
-    
-
-    

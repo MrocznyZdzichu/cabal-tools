@@ -1,17 +1,29 @@
-from ..FileHandling.SCPEasyModifier import SCPEasyModifier
 import copy
+
+# from ..FileHandling.SCPEasyModifier import SCPEasyModifier
+from ..FileHandling.SCPData         import SCPData
+
 
 class SkillInstantCast:
     def __init__(self):
-        self._scp_processor = SCPEasyModifier()
+        pass
 
-    def _instant_cast_scps(self, skill_scp, mb_scp, pvp_scp, skill_id, new_value):
-        new_scp = self._scp_processor.modify_scp_row(skill_scp, 'SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
-        new_mb  = self._scp_processor.modify_scp_row(mb_scp, 'MB_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
-        new_pvp = self._scp_processor.modify_scp_row(pvp_scp, 'PvP_SKill_Main', 'SkillIdx', skill_id, 'Instant_Execute', new_value)
+    def _instant_cast_scps(self, skill_scp: SCPData, mb_scp: SCPData, pvp_scp: SCPData, skill_id, new_value):
+        process_map = [
+            {'scp' : skill_scp, 'section_name' : 'SKill_Main'},
+            {'scp' : mb_scp,    'section_name' : 'MB_SKill_Main'},
+            {'scp' : pvp_scp,   'section_name' : 'PvP_SKill_Main'}
+        ]
 
-        return new_scp, new_mb, new_pvp
-
+        for conf in process_map:
+            conf['scp'].modify_field(
+                section_name=conf['section_name'], 
+                item_key_field='SkillIdx', 
+                item_key_value=skill_id, 
+                field_name='Instant_Execute', 
+                new_value=new_value
+            )
+        
     def _instant_cast_dec(self, skill_dec_data, skill_id, new_value):
         skill_id = str(skill_id)
         new_value = str(new_value)
@@ -29,7 +41,7 @@ class SkillInstantCast:
         return updated_dict 
     
     def instant_cast(self, skill_dec, skill_scp, mb_scp, pvp_scp, skill_id, new_value):
-        new_scp, new_mb, new_pvp = self._instant_cast_scps(skill_scp, mb_scp, pvp_scp, skill_id, new_value)
+        self._instant_cast_scps(skill_scp, mb_scp, pvp_scp, skill_id, new_value)
         new_dec = self._instant_cast_dec(skill_dec, skill_id, new_value)
 
-        return new_dec, new_scp, new_mb, new_pvp
+        return new_dec

@@ -1,15 +1,15 @@
-from ..FileHandling.SCPEasyModifier import SCPEasyModifier
 import copy
+
+from ..FileHandling.SCPData import SCPData
 
 
 class SkillTimeAdjuster:
     def __init__(self):
-        self._scp_processor = SCPEasyModifier()
+        pass
 
-    def _set_AdjustTime_scp(self, skill_scp_data, skill_id, new_value):
-        return self._scp_processor.modify_scp_row(
-            scp_data       = skill_scp_data,
-            section_name   = 'SKill_Main',
+    def _set_AdjustTime_scp(self, skill_scp_data: SCPData, skill_id, new_value):
+        skill_scp_data.modify_field(
+            section_name   = 'SKill_Main', 
             item_key_field = 'SkillIdx', 
             item_key_value = skill_id, 
             field_name     = 'AdjustTime', 
@@ -33,7 +33,7 @@ class SkillTimeAdjuster:
         return updated_dict 
 
     def set_skill_AdjustTime(self, skill_id, new_value, skill_dec_data, skill_scp_data):
-        new_scp = self._set_AdjustTime_scp(
+        self._set_AdjustTime_scp(
             skill_scp_data = skill_scp_data, 
             skill_id       = skill_id, 
             new_value      = new_value
@@ -44,4 +44,4 @@ class SkillTimeAdjuster:
             skill_dec_data = skill_dec_data
         )
 
-        return new_dec, new_scp
+        return new_dec
