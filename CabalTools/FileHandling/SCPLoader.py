@@ -1,3 +1,6 @@
+from ..FileHandling.SCPData import SCPData
+
+
 class SCPLoader:
     def __init__(self):
         pass
@@ -79,4 +82,4 @@ class SCPLoader:
                 entry = self._parse_entry_line(line, current_headers)
                 current_section['entries'].append(entry)
 
-        return result
+        return SCPData(result)

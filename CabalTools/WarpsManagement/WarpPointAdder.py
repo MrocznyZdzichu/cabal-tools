@@ -1,5 +1,7 @@
 import copy
 
+from .WarpPointItem import WarpPointItem
+from ..FileHandling.SCPData import SCPData
 
 class WarpPointAdder:
     def __init__(self):
@@ -11,7 +13,7 @@ class WarpPointAdder:
             "w_code", "Fee", "WorldIdx", "level"
         ]
 
-    def _remap_scp_attributes(self, warp_point_item, next_row_index):
+    def _remap_scp_attributes(self, warp_point_item: WarpPointItem, next_row_index):
         new_entry = {
             "RowIndex":        next_row_index,
             "WorldIdx":        int(warp_point_item.WorldIdx),
@@ -30,7 +32,7 @@ class WarpPointAdder:
         }
         return new_entry
     
-    def _process_dec(self, dec_data, warp_point_item):
+    def _process_dec(self, dec_data: dict, warp_point_item):
         new_dec = copy.deepcopy(dec_data)
 
         attributes = {k: getattr(warp_point_item, k) for k in self._dec_ordered_keys}
@@ -43,23 +45,15 @@ class WarpPointAdder:
 
         return new_dec
         
-    def _process_scp(self, scp_data, warp_point_item):
-        new_scp = copy.deepcopy(scp_data)
-
-        warp_section = next((s for s in new_scp if s.get("section") == "Warp"), None)
-        if warp_section is None:
-            return new_scp
-
-        entries = warp_section.setdefault("entries", [])
+    def _process_scp(self, scp_data: SCPData, warp_point_item: WarpPointItem):
+        entries = scp_data.get_section('Warp')
         next_row_index = entries[-1]["RowIndex"] + 1 if entries else 0
 
         new_entry = self._remap_scp_attributes(warp_point_item, next_row_index)
-        entries.append(new_entry)
-
-        return new_scp
+        scp_data.add_entry('Warp', new_entry)
 
     def add_warp_point(self, dec_data, scp_data, warp_point_item):
         new_dec = self._process_dec(dec_data, warp_point_item)
-        new_scp = self._process_scp(scp_data, warp_point_item)
+        self._process_scp(scp_data, warp_point_item)
         
-        return new_dec, new_scp
+        return new_dec

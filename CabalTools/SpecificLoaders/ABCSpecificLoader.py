@@ -2,6 +2,7 @@ import re
 from abc import ABC, abstractmethod
 
 from ..FileHandling.SCPLoader           import SCPLoader
+from ..FileHandling.SCPData             import SCPData
 from ..FileHandling.XMLSectionLoader    import XMLSectionLoader
 from ..FileHandling.XMLAttributesParser import XMLAttributesParser
 

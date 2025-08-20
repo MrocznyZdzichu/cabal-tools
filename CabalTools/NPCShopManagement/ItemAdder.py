@@ -1,7 +1,9 @@
 import copy
 from dataclasses import asdict
 
-from .ShopItem import ShopItem
+from ..FileHandling.SCPData import SCPData
+from .ShopItem              import ShopItem
+
 
 class ItemAdder:
     def __init__(self):
@@ -22,12 +24,12 @@ class ItemAdder:
         
     def _check_is_slot_occupied(
         self,
-        npcshop_scp_data,
+        npcshop_scp_data: SCPData,
         pool_id,
         slot_id,
         tab_id=0,
     ):
-        shop_entries = [x['entries'] for x in npcshop_scp_data if x['section'] == 'Shop'][0]
+        shop_entries = npcshop_scp_data.get_section('Shop')
         slots_occupied = [entry['SlotID'] for entry in shop_entries 
                         if entry['Pool_ID'] == pool_id and entry['TabID'] == tab_id]
 
@@ -52,25 +54,21 @@ class ItemAdder:
 
     def add_item_to_shop(
         self, 
-        npcshop_scp_data, 
+        npcshop_scp_data: SCPData, 
         pool_npc_map, 
         pool_id_or_name, 
         slot_id,     
         shop_item: ShopItem,
         tab_id=0
     ):
-        data_copy = copy.deepcopy(npcshop_scp_data)
         pool_id = self._set_proper_pool_id(pool_npc_map, pool_id_or_name)
 
         if self._check_is_slot_occupied(npcshop_scp_data, pool_id, slot_id, tab_id):
             print('WARN: The slot is already occupied by an other item. Omitting ...')
-            return data_copy
+            return 
         
-        shop_section = next((x for x in data_copy if x['section'] == 'Shop'), None)
-        if shop_section is None:
-            raise ValueError("ERROR: No 'Shop' section found in data!")
-
-        shop_entries = shop_section['entries']
+        section = 'Shop'
+        shop_entries = npcshop_scp_data.get_section(section)
         new_row_index = max([entry['RowIndex'] for entry in shop_entries]) + 1 if shop_entries else 1
 
         new_entry = self._create_shop_entry(
@@ -81,5 +79,4 @@ class ItemAdder:
             shop_item
         )
 
-        shop_entries.append(new_entry)
-        return data_copy
+        npcshop_scp_data.add_entry(section, new_entry)

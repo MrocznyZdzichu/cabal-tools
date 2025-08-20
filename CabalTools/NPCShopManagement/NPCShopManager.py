@@ -2,18 +2,17 @@ import copy
 
 from ..FileHandling.SCPxMsgJoiner   import SCPxMsgJoiner
 from ..FileHandling.SCPPreview      import SCPPreview
-from ..FileHandling.SCPSaver        import SCPSaver
+from ..FileHandling.SCPData         import SCPData
 from .ItemAdder                     import ItemAdder
 from .ItemRemover                   import ItemRemover
 
 
 class NPCShopManager:
-    def __init__(self, npc_shops_scp_data, npc_related_messages, items_related_messages, items_msg_map):
+    def __init__(self, npc_shops_scp_data: SCPData, npc_related_messages, items_related_messages, items_msg_map: dict):
         self._npc_scp         = npc_shops_scp_data
         self._npc_msg         = npc_related_messages
         self._item_msgs       = items_related_messages
         self._msg_map         = items_msg_map
-        # self._msg_map         = {x['ItemKind']: x['cont'] for x in items_related_messages}
 
         self._enriched_data1  = self._enrich_npc_section()
         self._npc_pool_map    = self._build_npc_pool_map()
@@ -25,7 +24,7 @@ class NPCShopManager:
         self._target_scp_name = 'NPCShop.scp'
 
     def _enrich_npc_section(self):        
-        enriched_scp = copy.deepcopy(self._npc_scp)
+        enriched_scp = copy.deepcopy(self._npc_scp.data)
         for section in enriched_scp:
             if section['section'] == 'NPC':
                 for entry in section['entries']:
@@ -57,7 +56,8 @@ class NPCShopManager:
         for section in new_scp:
             if section['section'] == 'Shop':
                 for entry in section['entries']:
-                    entry['Item_Name'] = self._msg_map.get(entry['ItemKind'])
+                    v = self._msg_map.get(entry['ItemKind'])
+                    entry['Item_Name'] = v['cont'] if v else None
                     entry['NPC_Name'] = self._npc_pool_map[entry['Pool_ID']]
                     
             elif section['section'] == 'ItemPrice':
@@ -66,11 +66,9 @@ class NPCShopManager:
 
         return new_scp
 
-    def reinit(self, new_shop_scp_data, full_reinit=False):
-        self._npc_scp         = new_shop_scp_data
-        if full_reinit:
-            self._enriched_data1  = self._enrich_npc_section()
-            self._enriched_data2  = self._enrich_shop_section()
+    def reinit(self):
+        self._enriched_data1  = self._enrich_npc_section()
+        self._enriched_data2  = self._enrich_shop_section()
 
     def preview_NPCs(self, columns_to_show=None, filter_key=None, filter_val=None, filter_operator=None):
         data = SCPPreview().preview(
@@ -98,7 +96,7 @@ class NPCShopManager:
         return data
     
     def add_item_to_shop(self, pool_or_or_npc_name, shop_slot_id, shop_item_to_add, shop_tab_id=0, save_files=True, do_reinit=False):
-        new_shop_scp = self._item_adder.add_item_to_shop( 
+        self._item_adder.add_item_to_shop( 
             npcshop_scp_data = self._npc_scp, 
             pool_npc_map     = self._npc_pool_map, 
             pool_id_or_name  = pool_or_or_npc_name, 
@@ -108,19 +106,15 @@ class NPCShopManager:
         )
 
         if save_files:
-            scp_saver = SCPSaver()
-            scp_saver.save_scp_file(new_shop_scp, self._target_scp_name)
+            self._npc_scp.save_to_file(self._target_scp_name)
 
         if do_reinit:
-            self.reinit(new_shop_scp)
-            
-        return new_shop_scp
+            self.reinit()
     
     def batch_add_item_to_shop(self, pool_or_or_npc_name, slot_x_shopitem_dict, shop_tab_id, save_files=True, do_reinit=False):
-        for it, (key, items) in enumerate(slot_x_shopitem_dict.items()):
-            data = self._npc_scp if it == 0 else new_shop_scp
-            new_shop_scp = self._item_adder.add_item_to_shop( 
-                npcshop_scp_data = data, 
+        for key, items in slot_x_shopitem_dict.items():
+            self._item_adder.add_item_to_shop( 
+                npcshop_scp_data = self._npc_scp, 
                 pool_npc_map     = self._npc_pool_map, 
                 pool_id_or_name  = pool_or_or_npc_name, 
                 slot_id          = key,     
@@ -128,16 +122,13 @@ class NPCShopManager:
                 tab_id           = shop_tab_id
             )
         if save_files:
-            scp_saver = SCPSaver()
-            scp_saver.save_scp_file(new_shop_scp, self._target_scp_name)
+            self._npc_scp.save_to_file(self._target_scp_name)
 
         if do_reinit:
-            self.reinit(new_shop_scp, full_reinit=True)
-        
-        return new_shop_scp
+            self.reinit()
             
     def remove_item_from_shop(self, pool_id_or_name, TabID, SlotID, save_files=True, do_reinit=False):
-        new_shop_scp = self._item_remover.remove_item_from_shop(
+        self._item_remover.remove_item_from_shop(
             scp_data         = self._npc_scp, 
             pool_npc_map     = self._npc_pool_map, 
             pool_id_or_name  = pool_id_or_name, 
@@ -145,19 +136,15 @@ class NPCShopManager:
             SlotID           = SlotID
         )
         if save_files:
-            scp_saver = SCPSaver()
-            scp_saver.save_scp_file(new_shop_scp, self._target_scp_name)
+            self._npc_scp.save_to_file(self._target_scp_name)
 
         if do_reinit:
-            self.reinit(new_shop_scp, full_reinit=True)
-            
-        return new_shop_scp
+            self.reinit()
     
     def batch_remove_item_from_shop(self, removed_items_data, do_reinit=False, save_files=True):
-        for it, (key, items) in enumerate(removed_items_data.items()):
-            data = self._npc_scp if it == 0 else new_shop_scp
-            new_shop_scp = self._item_remover.remove_item_from_shop(
-                scp_data         = data, 
+        for key, items in removed_items_data.items():
+            self._item_remover.remove_item_from_shop(
+                scp_data         = self._npc_scp, 
                 pool_npc_map     = self._npc_pool_map, 
                 pool_id_or_name  = items['pool_id_or_name'], 
                 TabID            = items['TabID'], 
@@ -165,10 +152,7 @@ class NPCShopManager:
             )
 
         if do_reinit:
-            self.reinit(new_shop_scp, full_reinit=True)
+            self.reinit()
 
         if save_files:
-            scp_saver = SCPSaver()
-            scp_saver.save_scp_file(new_shop_scp, self._target_scp_name)
-
-        return new_shop_scp
+            self._npc_scp.save_to_file(self._target_scp_name)
