@@ -1,12 +1,14 @@
-from .SkillsDataLoader import SkillsDataLoader
-from .ShopDataLoader import ShopDataLoader
-from .ItemDataLoader import ItemDataLoader
-from .WarpDataLoader import WarpDataLoader
-from .ConstSCPLoader import ConstSCPLoader
-from .MultipleSCPLoader import MultipleSCPLoader
-from .DropListLoader import DropListLoader
-from .MobsLoader import MobsLoader
-from .WorldMsgLoader import WorldMsgLoader
+from .SkillsDataLoader      import SkillsDataLoader
+from .ShopDataLoader        import ShopDataLoader
+from .ItemDataLoader        import ItemDataLoader
+from .WarpDataLoader        import WarpDataLoader
+from .ConstSCPLoader        import ConstSCPLoader
+from .MultipleSCPLoader     import MultipleSCPLoader
+from .DropListLoader        import DropListLoader
+from .MobsLoader            import MobsLoader
+from .WorldMsgLoader        import WorldMsgLoader
+from .CollectionDataLoader  import CollectionDataLoader
+
 
 __all__ = [
     "SkillsDataLoader",
@@ -18,4 +20,5 @@ __all__ = [
     "DropListLoader",
     "MobsLoader",
     "WorldMsgLoader",
+    "CollectionDataLoader"
 ]

@@ -11,16 +11,18 @@ from .WarpsManagement import *
 from .ConstManagement import *
 from .MultipleSCPManagement import *
 from .DropListManagement import *
+from .CollectionManagement import *
 
 
 class CabalTools:
     # Tips for VSC tooltips
-    SkillManager: Optional[SkillManager] = None
-    ShopsManager: Optional[NPCShopManager] = None
-    WarpManager: Optional[WarpManager] = None
-    ConstManager: Optional[ConstManager] = None
-    MultipleManager: Optional[MultipleSCPManager] = None
-    DropListManager: Optional[DropListManager] = None
+    SkillManager:      Optional[SkillManager]       = None
+    ShopsManager:      Optional[NPCShopManager]     = None
+    WarpManager:       Optional[WarpManager]        = None
+    ConstManager:      Optional[ConstManager]       = None
+    MultipleManager:   Optional[MultipleSCPManager] = None
+    DropListManager:   Optional[DropListManager]    = None
+    CollectionManager: Optional[CollectionManager]  = None
 
     def __init__(self, config="config.json", modules=None):
         # Tips for VSC tooltips
@@ -30,6 +32,7 @@ class CabalTools:
         self.ConstManager: ConstManager
         self.MultipleManager: MultipleSCPManager
         self.DropListManager: DropListManager
+        self.CollectionManager: CollectionManager
 
         self._modules_loaded = modules
         self.load_config(config=config)
@@ -55,12 +58,16 @@ class CabalTools:
         self._warp_scp_path = os.path.join(self._scp_dir, "Warp.scp")
         self._warp_dec_path = os.path.join(self._enc_dir, "cabal.dec")
 
-        self._const_scp_path = os.path.join(self._scp_dir, "Const.scp")
+        self._const_scp_path    = os.path.join(self._scp_dir, "Const.scp")
         self._multiple_scp_path = os.path.join(self._scp_dir, "Multiple.scp")
 
         self._drop_list_scp_path = os.path.join(self._scp_dir, "World_drop.scp")
-        self._mobs_msg_path = os.path.join(self._lang_dir, "cabal_msg.dec")
-        self._world_msg_path = os.path.join(self._lang_dir, "cabal_msg.dec")
+        self._mobs_msg_path      = os.path.join(self._lang_dir, "cabal_msg.dec")
+        self._world_msg_path     = os.path.join(self._lang_dir, "cabal_msg.dec")
+
+        self._colle_scp_path = os.path.join(self._scp_dir, "Collection.scp")
+        self._colle_dec_path = os.path.join(self._enc_dir, "Collection.dec")
+        self._colle_msg_path = os.path.join(self._lang_dir, "Collection_msg.dec")
 
         self._loader_configs = self._prepare_loaders_config()
         self._manager_configs = self._prepare_managers_config()
@@ -136,6 +143,11 @@ class CabalTools:
                 "args" : [self._world_msg_path],
                 "kwargs" : {}
             },
+            "collection" : {
+                "class": CollectionDataLoader,
+                "args" : [self._colle_scp_path, self._colle_dec_path, self._colle_msg_path],
+                "kwargs" : {}
+            },
         }
 
     def _prepare_managers_config(self):
@@ -178,6 +190,13 @@ class CabalTools:
                 "loader": "_droplists_dl",
                 "extra_loaders": ["_mobs_dl", "_worlds_msg_dl", "_items_dl"],
                 "attr": "DropListManager"
+            },
+            {
+                "name": "CollectionManager",
+                "class": CollectionManager,
+                "loader": "_collection_dl",
+                "extra_loaders": ["_items_dl"],
+                "attr": "CollectionManager"
             },
         ]
         return modules if not self._modules_loaded else [module for module in modules if module['name'] in self._modules_loaded]
@@ -243,3 +262,8 @@ class CabalTools:
 
     def backup_world_drops(self, bck_dir='Backups'):
         self.FileBackuper.make_a_backup(self._drop_list_scp_path, backup_dir=bck_dir)
+
+    def backup_collection_files(self, bck_dir='Backups'):
+        self.FileBackuper.make_a_backup(self._colle_scp_path, backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._colle_dec_path, backup_dir=bck_dir)
+        self.FileBackuper.make_a_backup(self._colle_msg_path, backup_dir=bck_dir)
