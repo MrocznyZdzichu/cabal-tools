@@ -1,9 +1,10 @@
+from ..ABCBaseManager       import ABCBaseManager
 from ..FileHandling.SCPData import SCPData
 
 
-class ConstManager:
+class ConstManager(ABCBaseManager):
     def __init__(self, scp_data: SCPData):
-        self._scp_data = scp_data
+        super().__init__(scp_data=scp_data, scp_target_filename='Const.scp')
 
     def set_drops_count_per_kill(self, new_drop_count, save_files=True):
         self._scp_data.modify_field(
@@ -15,4 +16,4 @@ class ConstManager:
         )
 
         if save_files:
-            self._scp_data.save_to_file('Const.scp')
+            self.save()

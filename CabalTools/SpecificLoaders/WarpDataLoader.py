@@ -16,4 +16,4 @@ class WarpDataLoader(ABCSpecificLoader):
         warp_dec_data = self._load_dec()
         warp_scp_data = self._load_scp_file()
 
-        return warp_dec_data, warp_scp_data
+        return warp_scp_data, warp_dec_data

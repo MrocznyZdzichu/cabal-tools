@@ -24,6 +24,6 @@ class SkillsDataLoader(ABCSpecificLoader):
         if self._skill_mb_path and self._skill_pvp_path:
             skill_mb_data = self._scp_loader.load_scp_file(self._skill_mb_path)
             skill_pvp_data = self._scp_loader.load_scp_file(self._skill_pvp_path)
-            return cabal_skill_names, skill_dec_data, skill_scp_data, skill_mb_data, skill_pvp_data
+            return skill_scp_data, skill_dec_data, cabal_skill_names, skill_mb_data, skill_pvp_data
 
-        return cabal_skill_names, skill_dec_data, skill_scp_data
+        return skill_scp_data, skill_dec_data, cabal_skill_names 

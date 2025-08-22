@@ -1,5 +1,6 @@
 import copy
 
+from ..ABCBaseManager          import ABCBaseManager
 from ..FileHandling.SCPData    import SCPData
 from ..FileHandling.SCPPreview import SCPPreview
 from ..FileHandling.XMLSaver   import XMLSaver
@@ -10,7 +11,7 @@ from .MissionAdder       import MissionAdder
 from .RewardChanger      import RewardChanger
 
 
-class CollectionManager:
+class CollectionManager(ABCBaseManager):
 
     def __init__(
         self,
@@ -28,9 +29,6 @@ class CollectionManager:
         item_rel_msgs: dict, 
         item_msg_dict: dict,
     ):
-        self._scp_data     = scp_data
-        self._dec_data     = dec_data
-        self._msg_data     = msg_data
         self._c_types_dict = c_types_dict
         self._c_id_dict    = c_id_dict
         self._m_id_dict    = m_id_dict
@@ -41,6 +39,13 @@ class CollectionManager:
         self._item_msg     = item_rel_msgs
         self._item_dict    = item_msg_dict
 
+        super().__init__(
+            scp_data=scp_data, 
+            dec_data=dec_data, 
+            msg_data=msg_data, 
+            scp_target_filename='Collection.scp', 
+            dec_target_filename='Collection.dec'
+        )
         self.reinit()
 
     def _get_exact_mission_reward(self, entry):
@@ -52,7 +57,17 @@ class CollectionManager:
             item_name = self._item_dict.get(item_kind).get('cont')
             return  item_name + ' with option: ' + item_opt
 
+    def _preanalysis(self):
+        self._config_analyser = ConfigPreprocessor(self._dec_data, self._scp_data)
+
+        self._stats_dict = self._config_analyser._get_force_code_dict()
+        self._rew_dict   = self._config_analyser._build_reward_dict()
+        self._colle_rew  = self._config_analyser._build_colle_reward_dict()
+
+        self._colle_tab_map, self._mission_tab_map = self._config_analyser._build_mission_id_map()
+
     def _enrich_scp(self):
+        self._preanalysis()
         rich_scp = copy.deepcopy(self._scp_data.data)
 
         for section in rich_scp:
@@ -71,21 +86,6 @@ class CollectionManager:
 
         return rich_scp
 
-    def reinit(self):
-        self._config_analyser = ConfigPreprocessor(self._dec_data, self._scp_data)
-
-        self._stats_dict = self._config_analyser._get_force_code_dict()
-        self._rew_dict   = self._config_analyser._build_reward_dict()
-        self._colle_rew  = self._config_analyser._build_colle_reward_dict()
-
-        self._colle_tab_map, self._mission_tab_map = self._config_analyser._build_mission_id_map()
-
-        self._rich_scp = self._enrich_scp()
-
-    def save_files(self):
-        self._scp_data.save_to_file('Collection.scp')
-        XMLSaver().save_dict_to_file(self._dec_data, 'Collection.dec')
-
     def rebuild_scp_indexes(self):
         self._scp_data.rebuild_rowindex('Collection')
         self._scp_data.rebuild_rowindex('Mission')
@@ -98,8 +98,7 @@ class CollectionManager:
             filter_val=None,
             filter_operator=None,                    
         ):
-        SCPPreview().preview(
-            self._rich_scp,
+        super().preview(
             section_name=section_name,
             columns=columns,
             filter_key=filter_key,
@@ -119,7 +118,7 @@ class CollectionManager:
         if rebuild_indexes:
             self.rebuild_scp_indexes()
         if save_files:
-            self.save_files()
+            self.save()
         if do_reinit:
             self.reinit()
 
@@ -129,7 +128,7 @@ class CollectionManager:
         if rebuild_indexes:
             self.rebuild_scp_indexes()
         if save_files:
-            self.save_files()
+            self.save()
         if do_reinit:
             self.reinit()
 
@@ -139,6 +138,6 @@ class CollectionManager:
         if rebuild_indexes:
             self.rebuild_scp_indexes()
         if save_files:
-            self.save_files()
+            self.save()
         if do_reinit:
             self.reinit()

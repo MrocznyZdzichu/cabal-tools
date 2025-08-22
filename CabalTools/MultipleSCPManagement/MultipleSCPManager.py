@@ -1,9 +1,10 @@
+from ..ABCBaseManager       import ABCBaseManager
 from ..FileHandling.SCPData import SCPData
 
 
-class MultipleSCPManager:
+class MultipleSCPManager(ABCBaseManager):
     def __init__(self, scp_data: SCPData):
-        self._scp_data   = scp_data
+        super().__init__(scp_data=scp_data, scp_target_filename='Multiple.scp')
 
     def set_drop_rate(self, new_drop_rate, save_files=True):
         self._scp_data.modify_field(
@@ -22,4 +23,4 @@ class MultipleSCPManager:
         )
         
         if save_files:
-            self._scp_data.save_to_file('Multiple.scp')
+            self.save()
