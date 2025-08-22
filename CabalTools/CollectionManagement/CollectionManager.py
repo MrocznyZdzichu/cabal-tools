@@ -6,6 +6,8 @@ from ..FileHandling.XMLSaver   import XMLSaver
 
 from .ConfigPreprocessor import ConfigPreprocessor
 from .MissionRemover     import MissionRemover
+from .MissionAdder       import MissionAdder
+from .RewardChanger      import RewardChanger
 
 
 class CollectionManager:
@@ -38,7 +40,7 @@ class CollectionManager:
 
         self._item_msg     = item_rel_msgs
         self._item_dict    = item_msg_dict
-        
+
         self.reinit()
 
     def _get_exact_mission_reward(self, entry):
@@ -49,7 +51,7 @@ class CollectionManager:
             item_opt  = self._rew_dict.get(str(entry['m_reward_type']) + '--' + str(entry['m_reward_id'])).get('ItemOpt')
             item_name = self._item_dict.get(item_kind).get('cont')
             return  item_name + ' with option: ' + item_opt
-    
+
     def _enrich_scp(self):
         rich_scp = copy.deepcopy(self._scp_data.data)
 
@@ -66,7 +68,7 @@ class CollectionManager:
                     entry['MissionName']   = self._m_id_dict.get(str(entry['c_type']) + '--' + str(entry['c_id']) + '--' + str(entry['mission_id']))
                     entry['ItemType']      = self._item_type.get(entry['m_item_type'])
                     entry['ItemName']      = self._item_name.get((str(entry['m_item_type']), str(entry['m_item_id'])))
-                
+
         return rich_scp
 
     def reinit(self):
@@ -75,9 +77,9 @@ class CollectionManager:
         self._stats_dict = self._config_analyser._get_force_code_dict()
         self._rew_dict   = self._config_analyser._build_reward_dict()
         self._colle_rew  = self._config_analyser._build_colle_reward_dict()
-        
+
         self._colle_tab_map, self._mission_tab_map = self._config_analyser._build_mission_id_map()
-        
+
         self._rich_scp = self._enrich_scp()
 
     def save_files(self):
@@ -121,69 +123,18 @@ class CollectionManager:
         if do_reinit:
             self.reinit()
 
-    def _add_scp_colle_sec(self, c_type, c_id, reward_type, reward_id, c_reward_id):
-        entries = self._scp_data.get_section('Collection')
-        new_entries = []
-
-        m_id = max([x['mission_id'] for x in entries if x['c_type'] == c_type and x['c_id'] == c_id]) + 1
-        idx  = max([x['RowIndex'] for x in entries]) + 1
-
-        new_record = {
-            'RowIndex'      : idx	,
-            'c_type'        : c_type,
-            'c_id'          : c_id,
-            'mission_id'    : m_id,	
-            'm_reward_type' : reward_type,
-            'm_reward_id'	: reward_id,
-            'c_reward_id'   : c_reward_id,
-        }
-        
-        for entry in entries:
-            new_entries.append(entry)
-            if entry.get('c_type') == c_type and entry.get('c_id') == c_id and entry.get('mission_id') == m_id- 1:
-                new_entries.append(new_record)
-
-        entries.clear()
-        entries.extend(new_entries)
-
-    def _add_scp_mission_sec(self, c_type, c_id, slots_config):
-        entries = self._scp_data.get_section('Mission')
-        new_entries = []
-
-        m_id = max([x['mission_id'] for x in entries if x['c_type'] == c_type and x['c_id'] == c_id]) + 1
-        idx  = max([x['RowIndex'] for x in entries]) + 1
-        
-        prev_mission_found = False
-        mission_added      = False
-
-        for entry in entries:            
-            if entry.get('c_type') == c_type and entry.get('c_id') == c_id and entry.get('mission_id') == m_id - 1:
-                prev_mission_found = True
-            if not (entry.get('c_type') == c_type and entry.get('c_id') == c_id) and prev_mission_found and not mission_added:
-                for slot_id, slot_properties in enumerate(slots_config):
-                    new_record = {
-                        'RowIndex'    : idx,
-                        'c_type'      : c_type,
-                        'c_id'        : c_id,
-                        'mission_id'  : m_id,
-                        'slot_id'     : slot_id,
-                        'm_item_type' : slot_properties['m_item_type'],
-                        'm_item_id'   : slot_properties['m_item_id'],
-                        'm_item_need' : slot_properties['m_item_need'],
-                    }
-                    new_entries.append(new_record)
-                mission_added = True
-            new_entries.append(entry)
-                
-        entries.clear()
-        entries.extend(new_entries)
-
-    def _add_mission_scp(self, c_type, c_id, reward_type, reward_id, c_reward_id, slots_config):
-        self._add_scp_colle_sec(c_type, c_id, reward_type, reward_id, c_reward_id)
-        self._add_scp_mission_sec(c_type, c_id, slots_config)
-
     def add_mission(self, c_type, c_id, reward_type, reward_id, c_reward_id, slots_config, do_reinit=False, save_files=True, rebuild_indexes=False):
-        self._add_mission_scp(c_type, c_id, reward_type, reward_id, c_reward_id, slots_config)
+        MissionAdder.add_mission(self._scp_data, self._dec_data, c_type, c_id, reward_type, reward_id, c_reward_id, slots_config)
+
+        if rebuild_indexes:
+            self.rebuild_scp_indexes()
+        if save_files:
+            self.save_files()
+        if do_reinit:
+            self.reinit()
+
+    def change_reward(self, c_reward_id, reward_ability, value_type, values, rebuild_indexes=False, save_files=True, do_reinit=False):
+        RewardChanger().change_collection_reward(self._scp_data, self._dec_data, c_reward_id ,reward_ability, value_type, values)
 
         if rebuild_indexes:
             self.rebuild_scp_indexes()

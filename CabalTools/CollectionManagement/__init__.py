@@ -4,4 +4,6 @@ __all__ = [
     "CollectionManager"
     ,'ConfigPreprocessor'
     ,'MissionRemover'
+    ,'MissionAdder'
+    ,'RewardChanger'
 ]
