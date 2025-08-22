@@ -3,15 +3,16 @@ import json
 from typing import Optional
 
 from .FileHandling.FileBackuper import FileBackuper
+from .ModuleVariables import get_loader_config, get_manager_config, get_backup_map
 
-from .SpecificLoaders import *
-from .SkillsManagement import *
-from .NPCShopManagement import *
-from .WarpsManagement import *
-from .ConstManagement import *
-from .MultipleSCPManagement import *
-from .DropListManagement import *
-from .CollectionManagement import *
+from .SkillsManagement import SkillManager
+from .NPCShopManagement import NPCShopManager
+from .WarpsManagement import WarpManager
+from .ConstManagement import ConstManager
+from .MultipleSCPManagement import MultipleSCPManager
+from .DropListManagement import DropListManager
+from .CollectionManagement import CollectionManager
+from .OVLManagement import OVLManager
 
 
 class CabalTools:
@@ -23,6 +24,7 @@ class CabalTools:
     MultipleManager:   Optional[MultipleSCPManager] = None
     DropListManager:   Optional[DropListManager]    = None
     CollectionManager: Optional[CollectionManager]  = None
+    OVLManager:        Optional[OVLManager]         = None
 
     def __init__(self, config="config.json", modules=None):
         # Tips for VSC tooltips
@@ -33,6 +35,7 @@ class CabalTools:
         self.MultipleManager: MultipleSCPManager
         self.DropListManager: DropListManager
         self.CollectionManager: CollectionManager
+        self.OVLManager: OVLManager
 
         self._modules_loaded = modules
         self.load_config(config=config)
@@ -45,6 +48,20 @@ class CabalTools:
         self._enc_dir = config["enc-dir"]
         self._lang_dir = config["lang-dir"]
 
+        self._set_config_files_paths()
+
+        self._loader_configs = get_loader_config(vars(self))
+        self._manager_configs = (
+            get_manager_config()
+            if not self._modules_loaded
+            else [m for m in get_manager_config() if m["name"] in self._modules_loaded]
+        )
+        self._backup_map = get_backup_map(vars(self))
+
+        self._init_data_loaders()
+        self._init_managers()
+
+    def _set_config_files_paths(self):
         self._cabal_messages_path = os.path.join(self._lang_dir, "cabal_msg.dec")
 
         self._skill_dec_path = os.path.join(self._enc_dir, "skill.dec")
@@ -69,137 +86,9 @@ class CabalTools:
         self._colle_dec_path = os.path.join(self._enc_dir, "Collection.dec")
         self._colle_msg_path = os.path.join(self._lang_dir, "Collection_msg.dec")
 
-        self._loader_configs = self._prepare_loaders_config()
-        self._manager_configs = self._prepare_managers_config()
-
-        self._init_data_loaders()
-        self._init_managers()
-
-    def _prepare_loaders_config(self):
-        return {
-            "skills": {
-                "class": SkillsDataLoader,
-                "args": [
-                    self._skill_dec_path,
-                    self._cabal_messages_path,
-                    self._skill_scp_path,
-                    self._mb_scp_path,
-                    self._pvp_scp_path,
-                ],
-                "kwargs": {},
-            },
-            "shops": {
-                "class": ShopDataLoader,
-                "args": [],
-                "kwargs": {
-                    "npcshop_scp_path": self._npcshop_scp_path,
-                    "cabal_messages_path": self._cabal_messages_path,
-                },
-            },
-            "items": {
-                "class": ItemDataLoader,
-                "args": [],
-                "kwargs": {
-                    "scp_path": self._item_scp_path,
-                    "messages_path": self._cabal_messages_path,
-                },
-            },
-            "warp_points": {
-                "class": WarpDataLoader,
-                "args": [],
-                "kwargs": {
-                    "dec_path": self._warp_dec_path,
-                    "scp_path": self._warp_scp_path,
-                },
-            },
-            "const_scp": {
-                "class": ConstSCPLoader,
-                "args": [],
-                "kwargs": {"scp_path": self._const_scp_path},
-            },
-            "multiple_scp" : {
-                "class": MultipleSCPLoader,
-                "args" : [],
-                "kwargs" : {
-                    "scp_path" : self._multiple_scp_path
-                }
-            },
-            "droplists" : {
-                "class": DropListLoader,
-                "args" : [],
-                "kwargs" : {
-                    "scp_path" : self._drop_list_scp_path
-                }
-            },
-            "mobs" : {
-                "class": MobsLoader,
-                "args" : [],
-                "kwargs" : {
-                    "messages_path" : self._mobs_msg_path
-                }
-            },
-            "worlds_msg" : {
-                "class": WorldMsgLoader,
-                "args" : [self._world_msg_path],
-                "kwargs" : {}
-            },
-            "collection" : {
-                "class": CollectionDataLoader,
-                "args" : [self._colle_scp_path, self._colle_dec_path, self._colle_msg_path],
-                "kwargs" : {}
-            },
-        }
-
-    def _prepare_managers_config(self):
-        modules = [
-            {
-                "name": "SkillManager",
-                "class": SkillManager,
-                "loader": "_skills_dl",
-                "attr": "SkillManager",
-            },
-            {
-                "name": "ShopsManager",
-                "attr": "ShopsManager",
-                "class": NPCShopManager,
-                "loader": "_shops_dl",
-                "extra_loaders": ["_items_dl"],
-                "unpack": False,
-            },
-            {
-                "name": "WarpManager",
-                "class": WarpManager,
-                "loader": "_warp_points_dl",
-                "attr": "WarpManager",
-            },
-            {
-                "name": "ConstManager",
-                "class": ConstManager,
-                "loader": "_const_scp_dl",
-                "attr": "ConstManager",
-            },
-            {
-                "name": "MultipleManager",
-                "class": MultipleSCPManager,
-                "loader": "_multiple_scp_dl",
-                "attr": "MultipleManager"
-            },
-            {
-                "name": "DropListManager",
-                "class": DropListManager,
-                "loader": "_droplists_dl",
-                "extra_loaders": ["_mobs_dl", "_worlds_msg_dl", "_items_dl"],
-                "attr": "DropListManager"
-            },
-            {
-                "name": "CollectionManager",
-                "class": CollectionManager,
-                "loader": "_collection_dl",
-                "extra_loaders": ["_items_dl"],
-                "attr": "CollectionManager"
-            },
-        ]
-        return modules if not self._modules_loaded else [module for module in modules if module['name'] in self._modules_loaded]
+        self._ovl_scp_path = os.path.join(self._scp_dir, "Overloadmastery.scp")
+        self._ovl_dec_path = os.path.join(self._enc_dir, "overloadmastery.dec")
+        self._ovl_msg_path = os.path.join(self._lang_dir, "overloadmastery_msg.dec")
 
     def _init_data_loaders(self):
         print("Configuring data loaders ...")
@@ -241,29 +130,8 @@ class CabalTools:
             setattr(self, cfg["name"], manager_obj)
             print(" Done!")
 
-    def backup_skill_files(self, bck_dir="Backups"):
-        self.FileBackuper.make_a_backup(self._skill_dec_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._skill_scp_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._mb_scp_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._pvp_scp_path, backup_dir=bck_dir)
-
-    def backup_npc_shops_files(self, bck_dir="Backups"):
-        self.FileBackuper.make_a_backup(self._npcshop_scp_path, backup_dir=bck_dir)
-
-    def backup_warp_files(self, bck_dir="Backups"):
-        self.FileBackuper.make_a_backup(self._warp_dec_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._warp_scp_path, backup_dir=bck_dir)
-
-    def backup_const_files(self, bck_dir="Backups"):
-        self.FileBackuper.make_a_backup(self._const_scp_path, backup_dir=bck_dir)
-
-    def backup_multiple_scp_file(self, bck_dir="Backups"):
-        self.FileBackuper.make_a_backup(self._multiple_scp_path, backup_dir=bck_dir)
-
-    def backup_world_drops(self, bck_dir='Backups'):
-        self.FileBackuper.make_a_backup(self._drop_list_scp_path, backup_dir=bck_dir)
-
-    def backup_collection_files(self, bck_dir='Backups'):
-        self.FileBackuper.make_a_backup(self._colle_scp_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._colle_dec_path, backup_dir=bck_dir)
-        self.FileBackuper.make_a_backup(self._colle_msg_path, backup_dir=bck_dir)
+    def backup(self, category: str, bck_dir="Backups"):
+        if category not in self._backup_map:
+            raise ValueError(f"Unknown backup category: {category}")
+        for path in self._backup_map[category]:
+            self.FileBackuper.make_a_backup(path, backup_dir=bck_dir)

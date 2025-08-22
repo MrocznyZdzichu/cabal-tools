@@ -8,6 +8,7 @@ from .DropListLoader        import DropListLoader
 from .MobsLoader            import MobsLoader
 from .WorldMsgLoader        import WorldMsgLoader
 from .CollectionDataLoader  import CollectionDataLoader
+from .OVLDataLoader         import OVLDataLoader
 
 
 __all__ = [
@@ -20,5 +21,6 @@ __all__ = [
     "DropListLoader",
     "MobsLoader",
     "WorldMsgLoader",
-    "CollectionDataLoader"
+    "CollectionDataLoader",
+    "OVLDataLoader"
 ]
