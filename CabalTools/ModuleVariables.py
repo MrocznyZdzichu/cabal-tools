@@ -72,6 +72,11 @@ def get_loader_config(paths):
             "args": [paths["_world_msg_path"]],
             "kwargs": {},
         },
+        "forcecodes" : {
+            "class": ForceCodeDictLoader,
+            "args": [],
+            "kwargs": {},
+        },
         "collection": {
             "class": CollectionDataLoader,
             "args": [
@@ -101,8 +106,8 @@ def get_manager_config():
         {"name": "ConstManager", "class": ConstManager, "loader": "_const_scp_dl", "attr": "ConstManager"},
         {"name": "MultipleManager", "class": MultipleSCPManager, "loader": "_multiple_scp_dl", "attr": "MultipleManager"},
         {"name": "DropListManager", "class": DropListManager, "loader": "_droplists_dl", "attr": "DropListManager", "extra_loaders": ["_mobs_dl", "_worlds_msg_dl", "_items_dl"]},
-        {"name": "CollectionManager", "class": CollectionManager, "loader": "_collection_dl", "attr": "CollectionManager", "extra_loaders": ["_items_dl"]},
-        {"name": "OVLManager", "class": OVLManager, "loader": "_ovl_dl", "attr": "OVLManager"},
+        {"name": "CollectionManager", "class": CollectionManager, "loader": "_collection_dl", "attr": "CollectionManager", "extra_loaders": ["_items_dl", "_forcecodes_dl"]},
+        {"name": "OVLManager", "class": OVLManager, "loader": "_ovl_dl", "attr": "OVLManager", "extra_loaders" : ["_forcecodes_dl"]},
     ]
 
 
@@ -124,4 +129,5 @@ def get_backup_map(paths):
             paths["_colle_dec_path"],
             paths["_colle_msg_path"],
         ],
+        "ovl" : [paths["_ovl_scp_path"], paths["_ovl_dec_path"], paths["_ovl_msg_path"]]
     }

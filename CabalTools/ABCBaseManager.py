@@ -1,3 +1,4 @@
+import copy
 from abc import ABC, abstractmethod
 
 from .FileHandling.SCPData    import SCPData
@@ -15,7 +16,7 @@ class ABCBaseManager(ABC):
         self._enriched_data       = self._enrich_scp() if scp_data else None
 
     def _enrich_scp(self) -> SCPData:
-        return self._scp_data.data
+        return copy.deepcopy(self._scp_data.data)
 
     def reinit(self, new_scp=None, new_dec=None):
         if new_scp:

@@ -28,6 +28,7 @@ class CollectionManager(ABCBaseManager):
         # Data from bonus item loader
         item_rel_msgs: dict, 
         item_msg_dict: dict,
+        stats_dict: dict
     ):
         self._c_types_dict = c_types_dict
         self._c_id_dict    = c_id_dict
@@ -38,6 +39,7 @@ class CollectionManager(ABCBaseManager):
 
         self._item_msg     = item_rel_msgs
         self._item_dict    = item_msg_dict
+        self._stats_dict   = stats_dict
 
         super().__init__(
             scp_data=scp_data, 
@@ -58,9 +60,8 @@ class CollectionManager(ABCBaseManager):
             return  item_name + ' with option: ' + item_opt
 
     def _preanalysis(self):
-        self._config_analyser = ConfigPreprocessor(self._dec_data, self._scp_data)
+        self._config_analyser = ConfigPreprocessor(self._dec_data, self._scp_data, self._stats_dict)
 
-        self._stats_dict = self._config_analyser._get_force_code_dict()
         self._rew_dict   = self._config_analyser._build_reward_dict()
         self._colle_rew  = self._config_analyser._build_colle_reward_dict()
 
