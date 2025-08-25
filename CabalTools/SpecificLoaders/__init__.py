@@ -10,6 +10,8 @@ from .WorldMsgLoader        import WorldMsgLoader
 from .CollectionDataLoader  import CollectionDataLoader
 from .OVLDataLoader         import OVLDataLoader
 from .ForceCodeDictLoader   import ForceCodeDictLoader
+from .StellarDataLoader     import StellarDataLoader
+
 
 __all__ = [
     "SkillsDataLoader",
@@ -23,5 +25,6 @@ __all__ = [
     "WorldMsgLoader",
     "CollectionDataLoader",
     "OVLDataLoader",
-    "ForceCodeDictLoader"
+    "ForceCodeDictLoader",
+    "StellarDataLoader"
 ]

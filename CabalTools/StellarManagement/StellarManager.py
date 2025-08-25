@@ -1,0 +1,63 @@
+from ..FileHandling.SCPData import SCPData
+from ..ABCBaseManager       import ABCBaseManager
+
+from .SetBonusChanger import SetBonusChanger
+
+
+class StellarManager(ABCBaseManager):
+    def __init__(self, scp_data:SCPData, dec_data, msg_data, forcecodes: dict):
+        self._stats_dict = forcecodes
+        super().__init__(
+            scp_data,
+            dec_data,
+            msg_data,
+            scp_target_filename="Stellar.scp",
+            dec_target_filename="stellar.dec",
+        )
+
+    def _enrich_scp(self):
+        rich_scp = super()._enrich_scp()
+
+        for section in rich_scp:
+            for entry in section['entries']:
+                if section['section'] == 'Stellar_Forcecode':
+                    entry['Force_Code_Name'] = self._stats_dict.get(entry['Force_Code'])
+                if section['section'] == 'Set_Ability':
+                    entry['Force_Code_Name1'] = self._stats_dict.get(entry['Force_Code1'])
+                    entry['Force_Code_Name2'] = self._stats_dict.get(entry['Force_Code2'])
+
+        return rich_scp
+
+    def modify_set_bonus(
+        self,
+        Line_No,
+        Grade,
+        Force_Code1=None,
+        Value1=None,
+        Value_Type1=None,
+        Force_Code2=None,
+        Value2=None,
+        Value_Type2=None,
+        do_reinit=True,
+        save_files=True,
+    ):
+        if all(x == None for x in (Force_Code1, Value1, Value_Type1, Force_Code2, Value2, Value_Type2)):
+            return
+        
+        SetBonusChanger.modify_set_bonus(
+            self._scp_data, 
+            self._dec_data, 
+            Line_No, 
+            Grade, 
+            Force_Code1=Force_Code1, 
+            Value1=Value1, 
+            Value_Type1=Value_Type1, 
+            Force_Code2=Force_Code2, 
+            Value2=Value2, 
+            Value_Type2=Value_Type2
+        )
+
+        if do_reinit:
+            self.reinit()
+        if save_files:
+            self.save()

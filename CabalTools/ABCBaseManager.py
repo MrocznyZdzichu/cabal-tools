@@ -15,7 +15,7 @@ class ABCBaseManager(ABC):
         self._dec_target_filename = dec_target_filename
         self._enriched_data       = self._enrich_scp() if scp_data else None
 
-    def _enrich_scp(self) -> SCPData:
+    def _enrich_scp(self):
         return copy.deepcopy(self._scp_data.data)
 
     def reinit(self, new_scp=None, new_dec=None):

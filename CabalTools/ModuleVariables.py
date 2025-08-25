@@ -1,13 +1,14 @@
 from .SpecificLoaders import *
 
-from .SkillsManagement import SkillManager
-from .NPCShopManagement import NPCShopManager
-from .WarpsManagement import WarpManager
-from .ConstManagement import ConstManager
+from .SkillsManagement      import SkillManager
+from .NPCShopManagement     import NPCShopManager
+from .WarpsManagement       import WarpManager
+from .ConstManagement       import ConstManager
 from .MultipleSCPManagement import MultipleSCPManager
-from .DropListManagement import DropListManager
-from .CollectionManagement import CollectionManager
-from .OVLManagement import OVLManager
+from .DropListManagement    import DropListManager
+from .CollectionManagement  import CollectionManager
+from .OVLManagement         import OVLManager
+from .StellarManagement     import StellarManager
 
 
 def get_loader_config(paths):
@@ -95,6 +96,15 @@ def get_loader_config(paths):
             ],
             "kwargs": {},
         },
+        "stellar": {
+            "class": StellarDataLoader,
+            "args": [
+                paths["_stellar_scp_path"],
+                paths["_stellar_dec_path"],
+                paths["_stellar_msg_path"],
+            ],
+            "kwargs": {},
+        },
     }
 
 
@@ -108,6 +118,7 @@ def get_manager_config():
         {"name": "DropListManager", "class": DropListManager, "loader": "_droplists_dl", "attr": "DropListManager", "extra_loaders": ["_mobs_dl", "_worlds_msg_dl", "_items_dl"]},
         {"name": "CollectionManager", "class": CollectionManager, "loader": "_collection_dl", "attr": "CollectionManager", "extra_loaders": ["_items_dl", "_forcecodes_dl"]},
         {"name": "OVLManager", "class": OVLManager, "loader": "_ovl_dl", "attr": "OVLManager", "extra_loaders" : ["_forcecodes_dl"]},
+        {"name": "StellarManager", "class": StellarManager, "loader": "_stellar_dl", "attr": "StellarManager", "extra_loaders" : ["_forcecodes_dl"]},
     ]
 
 
@@ -129,5 +140,6 @@ def get_backup_map(paths):
             paths["_colle_dec_path"],
             paths["_colle_msg_path"],
         ],
-        "ovl" : [paths["_ovl_scp_path"], paths["_ovl_dec_path"], paths["_ovl_msg_path"]]
+        "ovl" : [paths["_ovl_scp_path"], paths["_ovl_dec_path"], paths["_ovl_msg_path"]],
+        "stellar" : [paths["_stellar_scp_path"], paths["_stellar_dec_path"], paths["_stellar_msg_path"]],
     }

@@ -13,7 +13,7 @@ from .MultipleSCPManagement import MultipleSCPManager
 from .DropListManagement import DropListManager
 from .CollectionManagement import CollectionManager
 from .OVLManagement import OVLManager
-
+from .StellarManagement import StellarManager
 
 class CabalTools:
     # Tips for VSC tooltips
@@ -25,6 +25,7 @@ class CabalTools:
     DropListManager:   Optional[DropListManager]    = None
     CollectionManager: Optional[CollectionManager]  = None
     OVLManager:        Optional[OVLManager]         = None
+    StellarManager:    Optional[StellarManager]     = None
 
     def __init__(self, config="config.json", modules=None):
         # Tips for VSC tooltips
@@ -36,6 +37,7 @@ class CabalTools:
         self.DropListManager: DropListManager
         self.CollectionManager: CollectionManager
         self.OVLManager: OVLManager
+        self.StellarManager: StellarManager
 
         self._modules_loaded = modules
         self.load_config(config=config)
@@ -89,6 +91,10 @@ class CabalTools:
         self._ovl_scp_path = os.path.join(self._scp_dir, "Overloadmastery.scp")
         self._ovl_dec_path = os.path.join(self._enc_dir, "overloadmastery.dec")
         self._ovl_msg_path = os.path.join(self._lang_dir, "overloadmastery_msg.dec")
+        
+        self._stellar_scp_path = os.path.join(self._scp_dir, "Stellar.scp")
+        self._stellar_dec_path = os.path.join(self._enc_dir, "stellar.dec")
+        self._stellar_msg_path = os.path.join(self._lang_dir, "stellar_msg.dec")
 
     def _init_data_loaders(self):
         print("Configuring data loaders ...")
