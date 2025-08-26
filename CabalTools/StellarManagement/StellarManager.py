@@ -1,7 +1,9 @@
 from ..FileHandling.SCPData import SCPData
-from ..ABCBaseManager       import ABCBaseManager
+from ..ABCBaseManager       import ABCBaseManager, can_reconfig
 
-from .SetBonusChanger import SetBonusChanger
+from .SetBonusChanger    import SetBonusChanger
+from .GradeChanceChanger import GradeChanceChanger
+from .StatsValuesChanger import StatsValuesChanger
 
 
 class StellarManager(ABCBaseManager):
@@ -28,6 +30,7 @@ class StellarManager(ABCBaseManager):
 
         return rich_scp
 
+    @can_reconfig
     def modify_set_bonus(
         self,
         Line_No,
@@ -37,9 +40,7 @@ class StellarManager(ABCBaseManager):
         Value_Type1=None,
         Force_Code2=None,
         Value2=None,
-        Value_Type2=None,
-        do_reinit=True,
-        save_files=True,
+        Value_Type2=None
     ):
         if all(x == None for x in (Force_Code1, Value1, Value_Type1, Force_Code2, Value2, Value_Type2)):
             return
@@ -57,7 +58,28 @@ class StellarManager(ABCBaseManager):
             Value_Type2=Value_Type2
         )
 
-        if do_reinit:
-            self.reinit()
-        if save_files:
-            self.save()
+    @can_reconfig
+    def modify_grade_chances(self, upgrade_code, target_grade, chance, normalize=False):
+        GradeChanceChanger.modify(self._scp_data, upgrade_code, target_grade, chance, normalize=normalize)
+
+    def normalize_grade_chances(self):
+        GradeChanceChanger.normalize(self._scp_data)
+
+    @can_reconfig
+    def truncate_force_value(self, V_value):           
+        StatsValuesChanger.delete_stat(self._scp_data, V_value)
+
+    @can_reconfig
+    def remove_value_grade(self, V_Id, V_Order):   # V_Id	V_Order	Value	Value_type	V_Per
+        StatsValuesChanger.delete_stat_grade(self._scp_data, V_Id, V_Order)
+
+    def normalize_stat_chances(self):
+        StatsValuesChanger.normalize(self._scp_data)
+
+    @can_reconfig
+    def set_stat_percentage(self, Value_Key, new_percentage):
+        StatsValuesChanger.set_stat_percentage(self._scp_data, Value_Key, new_percentage)
+
+    @can_reconfig
+    def set_stat_value(self, V_Id, V_Order, new_value):
+        StatsValuesChanger.set_stat_value(self._scp_data, V_Id, V_Order, new_value)

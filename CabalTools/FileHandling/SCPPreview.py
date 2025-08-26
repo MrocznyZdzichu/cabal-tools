@@ -102,20 +102,22 @@ class SCPPreview:
         </div>
     """
 
-    def preview(self, data, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+    def preview(self, data, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None, suppress=False) -> pd.DataFrame | None:
         sects = self._set_sections(section_name, data)
         for sect in sects:
             entries = [x for x in data if x['section'] == sect][0]['entries']
-            display(HTML(f"<h3 style='color:#4CAF50'>{sect}</h3>"))
+            if not suppress:
+                display(HTML(f"<h3 style='color:#4CAF50'>{sect}</h3>"))
             if not entries:
                 display(HTML("<i>Brak danych</i>"))
                 return
             
             df = pd.DataFrame(entries)
             df = self._filtering(df, columns, filter_key, filter_val, filter_operator)
-            styled_df_html = self._stylish_df(df)._repr_html_()
-            scroll_box = self._wrap_in_scrollbox(styled_df_html)
-            
-            display(HTML(scroll_box))
+            if not suppress:
+                styled_df_html = self._stylish_df(df)._repr_html_()
+                scroll_box = self._wrap_in_scrollbox(styled_df_html)
+                
+                display(HTML(scroll_box))
         if section_name:
             return df

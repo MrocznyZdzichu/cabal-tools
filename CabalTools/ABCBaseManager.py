@@ -26,14 +26,15 @@ class ABCBaseManager(ABC):
 
         self._enriched_data = self._enrich_scp()
 
-    def preview(self, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None):
+    def preview(self, section_name=None, columns=None, filter_key=None, filter_val=None, filter_operator=None, suppress=False):
         return SCPPreview().preview(
             self._enriched_data,
             section_name    = section_name,
             columns         = columns,
             filter_key      = filter_key,
             filter_val      = filter_val,
-            filter_operator = filter_operator
+            filter_operator = filter_operator,
+            suppress        = suppress
         )
 
     def save(self):
@@ -41,3 +42,16 @@ class ABCBaseManager(ABC):
             self._scp_data.save_to_file(self._scp_target_filename)
         if self._dec_data and self._dec_target_filename:
             XMLSaver().save_dict_to_file(self._dec_data, self._dec_target_filename)
+
+
+def can_reconfig(func):
+    def wrapper(self, *args, do_reinit=True, save_files=True, **kwargs):
+        result = func(self, *args, **kwargs)
+
+        if do_reinit:
+            self.reinit()
+        if save_files:
+            self.save()
+
+        return result
+    return wrapper
