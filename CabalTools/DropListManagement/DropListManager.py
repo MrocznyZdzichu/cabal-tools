@@ -1,7 +1,7 @@
 import copy
 from dataclasses import asdict
 
-from ..ABCBaseManager          import ABCBaseManager
+from ..ABCBaseManager          import ABCBaseManager, can_reconfig
 from ..FileHandling.SCPPreview import SCPPreview
 from ..FileHandling.SCPData    import SCPData
 
@@ -66,20 +66,16 @@ class DropListManager(ABCBaseManager):
         
         return self._drop_types[drop_type]['section_name']
     
-    def remove_drop_from_list(self, drop_type, drop_index, rebuild_index=False, do_reinit=False, save_files=True):
+    @can_reconfig
+    def remove_drop_from_list(self, drop_type, drop_index, rebuild_index=False):
         section_name = self._set_section(drop_type)
         if not section_name:
             return
         
         self._scp_data.remove_entry(section_name, drop_index, rebuild_index)
 
-        if do_reinit:
-            self.reinit()
-
-        if save_files:
-            self.save()
-
-    def add_drop(self, drop_type, drop_item, do_reinit=False, save_files=True):
+    @can_reconfig
+    def add_drop(self, drop_type, drop_item):
         section_name = self._set_section(drop_type)
         if not section_name:
             return
@@ -90,9 +86,3 @@ class DropListManager(ABCBaseManager):
         entry.update(asdict(drop_item))
         
         self._scp_data.add_entry(section_name, entry)
-
-        if do_reinit:
-            self.reinit()
-        
-        if save_files:
-            self.save()
